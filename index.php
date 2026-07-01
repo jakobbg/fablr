@@ -291,6 +291,7 @@ function media_url(string $feed, string $relPath): string {
 function send_rss(string $feed, string $feedDir): void {
     $base = base_url();
     $self = $base . '?' . http_build_query(['feed' => $feed]);
+    $name = basename($feed);
 
     $items = find_media_files($feedDir);
 
@@ -314,23 +315,23 @@ function send_rss(string $feed, string $feedDir): void {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     echo "<rss version=\"2.0\" xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n";
     echo "  <channel>\n";
-    echo "    <title>" . h($feed) . "</title>\n";
+    echo "    <title>" . h($name) . "</title>\n";
     echo "    <link>" . h($base) . "</link>\n";
-    echo "    <description>" . h("Podcast feed for {$feed}") . "</description>\n";
+    echo "    <description>" . h("Podcast feed for {$name}") . "</description>\n";
     echo "    <language>no</language>\n";
     echo "    <lastBuildDate>" . gmdate(DATE_RSS, $lastBuild) . "</lastBuildDate>\n";
     echo "    <generator>index.php</generator>\n";
     echo "    <atom:link href=\"" . h($self) . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
     // Required by Apple Podcasts
-    echo "    <itunes:author>" . h($feed) . "</itunes:author>\n";
+    echo "    <itunes:author>" . h($name) . "</itunes:author>\n";
     echo "    <itunes:explicit>false</itunes:explicit>\n";
     echo "    <itunes:category text=\"Fiction\" />\n";
-    echo "    <itunes:summary>" . h("Podcast feed for {$feed}") . "</itunes:summary>\n";
+    echo "    <itunes:summary>" . h("Podcast feed for {$name}") . "</itunes:summary>\n";
     if ($imgUrl !== null) {
         // Standard RSS image block
         echo "    <image>\n";
         echo "      <url>" . h($imgUrl) . "</url>\n";
-        echo "      <title>" . h($feed) . "</title>\n";
+        echo "      <title>" . h($name) . "</title>\n";
         echo "      <link>" . h($base) . "</link>\n";
         echo "    </image>\n";
         echo "    <itunes:image href=\"" . h($imgUrl) . "\" />\n";
