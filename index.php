@@ -489,9 +489,6 @@ function stream_file(string $feed, string $feedDir, string $rel): void {
         if ($buf === false) break;
         $remaining -= strlen($buf);
         echo $buf;
-        if (function_exists('fastcgi_finish_request')) {
-            // no-op; keep streaming
-        }
         flush();
     }
     fclose($fp);
