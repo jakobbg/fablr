@@ -34,9 +34,6 @@ function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function xml_escape(string $s): string {
-    return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
 
 function human_age(?int $ts): ?string {
     if (empty($ts) || $ts <= 0) return null;
@@ -317,26 +314,26 @@ function send_rss(string $feed, string $feedDir): void {
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     echo "<rss version=\"2.0\" xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n";
     echo "  <channel>\n";
-    echo "    <title>" . xml_escape($feed) . "</title>\n";
-    echo "    <link>" . xml_escape($base) . "</link>\n";
-    echo "    <description>" . xml_escape("Podcast feed for {$feed}") . "</description>\n";
+    echo "    <title>" . h($feed) . "</title>\n";
+    echo "    <link>" . h($base) . "</link>\n";
+    echo "    <description>" . h("Podcast feed for {$feed}") . "</description>\n";
     echo "    <language>no</language>\n";
     echo "    <lastBuildDate>" . gmdate(DATE_RSS, $lastBuild) . "</lastBuildDate>\n";
     echo "    <generator>index.php</generator>\n";
-    echo "    <atom:link href=\"" . xml_escape($self) . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
+    echo "    <atom:link href=\"" . h($self) . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
     // Required by Apple Podcasts
-    echo "    <itunes:author>" . xml_escape($feed) . "</itunes:author>\n";
+    echo "    <itunes:author>" . h($feed) . "</itunes:author>\n";
     echo "    <itunes:explicit>false</itunes:explicit>\n";
     echo "    <itunes:category text=\"Fiction\" />\n";
-    echo "    <itunes:summary>" . xml_escape("Podcast feed for {$feed}") . "</itunes:summary>\n";
+    echo "    <itunes:summary>" . h("Podcast feed for {$feed}") . "</itunes:summary>\n";
     if ($imgUrl !== null) {
         // Standard RSS image block
         echo "    <image>\n";
-        echo "      <url>" . xml_escape($imgUrl) . "</url>\n";
-        echo "      <title>" . xml_escape($feed) . "</title>\n";
-        echo "      <link>" . xml_escape($base) . "</link>\n";
+        echo "      <url>" . h($imgUrl) . "</url>\n";
+        echo "      <title>" . h($feed) . "</title>\n";
+        echo "      <link>" . h($base) . "</link>\n";
         echo "    </image>\n";
-        echo "    <itunes:image href=\"" . xml_escape($imgUrl) . "\" />\n";
+        echo "    <itunes:image href=\"" . h($imgUrl) . "\" />\n";
     }
 
     foreach ($items as $it) {
@@ -347,17 +344,17 @@ function send_rss(string $feed, string $feedDir): void {
         $pubTs = (int)($it['pub_ts'] ?? $it['mtime']);
 
         echo "    <item>\n";
-        echo "      <title>" . xml_escape($title) . "</title>\n";
+        echo "      <title>" . h($title) . "</title>\n";
         echo "      <pubDate>" . gmdate(DATE_RSS, $pubTs) . "</pubDate>\n";
-        echo "      <guid isPermaLink=\"false\">" . xml_escape($guid) . "</guid>\n";
-        echo "      <link>" . xml_escape($enclosure) . "</link>\n";
-        echo "      <description>" . xml_escape($title) . "</description>\n";
-        echo "      <itunes:title>" . xml_escape($title) . "</itunes:title>\n";
+        echo "      <guid isPermaLink=\"false\">" . h($guid) . "</guid>\n";
+        echo "      <link>" . h($enclosure) . "</link>\n";
+        echo "      <description>" . h($title) . "</description>\n";
+        echo "      <itunes:title>" . h($title) . "</itunes:title>\n";
         echo "      <itunes:explicit>false</itunes:explicit>\n";
         if ($imgUrl !== null) {
-            echo "      <itunes:image href=\"" . xml_escape($imgUrl) . "\" />\n";
+            echo "      <itunes:image href=\"" . h($imgUrl) . "\" />\n";
         }
-        echo "      <enclosure url=\"" . xml_escape($enclosure) . "\" length=\"" . (int)$it['size'] . "\" type=\"" . xml_escape($it['mime']) . "\" />\n";
+        echo "      <enclosure url=\"" . h($enclosure) . "\" length=\"" . (int)$it['size'] . "\" type=\"" . h($it['mime']) . "\" />\n";
         echo "    </item>\n";
     }
 
