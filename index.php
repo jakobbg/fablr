@@ -7,6 +7,7 @@ const PODCAST_ROOT    = '/mnt/torrents/Podcasts';
 const PODCASTS_SUBDIR = 'Podcasts';
 const BOOKS_SUBDIR    = 'Books';
 const MAX_ITEMS = 200;
+const FEED_LANGUAGE = 'no';
 
 function base_url(): string {
     $https = false;
@@ -322,7 +323,7 @@ function send_rss(string $feed, string $feedDir): void {
     echo "    <title>" . h($name) . "</title>\n";
     echo "    <link>" . h($base) . "</link>\n";
     echo "    <description>" . h("Podcast feed for {$name}") . "</description>\n";
-    echo "    <language>no</language>\n";
+    echo "    <language>" . h(FEED_LANGUAGE) . "</language>\n";
     echo "    <lastBuildDate>" . gmdate(DATE_RSS, $lastBuild) . "</lastBuildDate>\n";
     echo "    <generator>index.php</generator>\n";
     echo "    <atom:link href=\"" . h($self) . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
