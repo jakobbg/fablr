@@ -47,4 +47,17 @@ if (!empty($missing)) {
     exit(1);
 }
 
+// Verify cache directory is writable — caches silently do nothing if it isn't.
+$cacheDir = $root . DIRECTORY_SEPARATOR . 'cache';
+if (!is_dir($cacheDir)) {
+    fwrite(STDERR, "Structure smoke tests failed: cache/ directory does not exist.\n");
+    exit(1);
+}
+if (!is_writable($cacheDir)) {
+    fwrite(STDERR, "Structure smoke warning: cache/ is not writable by the current process.\n");
+    fwrite(STDERR, "  Run: chmod 777 " . $cacheDir . "\n");
+    fwrite(STDERR, "  Episode duration and metadata caches will silently fail until fixed.\n");
+    // Non-fatal on CI (may run as a different user); fatal only in production checks.
+}
+
 echo "Structure smoke tests passed: " . count($requiredPaths) . "\n";
