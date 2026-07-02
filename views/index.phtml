@@ -495,6 +495,21 @@
   </div>
 
 <script defer src="<?= h($assetBase . 'js/clipboard.js') ?>"></script>
-<script defer src="<?= h($assetBase . 'js/search.js') ?>"></script>
+<script>
+(function () {
+  var inp = document.getElementById('feed-search');
+  if (!inp) return;
+  function filterCards(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('.grid section.card').forEach(function (card) {
+      var h2 = card.querySelector('h2');
+      var title = h2 ? h2.textContent.toLowerCase() : '';
+      card.style.display = (!q || title.indexOf(q) !== -1) ? '' : 'none';
+    });
+  }
+  inp.addEventListener('input', function () { filterCards(inp.value); });
+  if (inp.value) filterCards(inp.value);
+}());
+</script>
 </body>
 </html>

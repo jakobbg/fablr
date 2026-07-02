@@ -17,4 +17,4 @@ const TRUSTED_PROXY_CIDRS = ['127.0.0.1/32', '::1/128'];
 const FETCH_BOOK_METADATA = false;
 
 // Number of feeds shown per page on the index.
-const FEEDS_PER_PAGE = 12;
+const FEEDS_PER_PAGE = 9;
