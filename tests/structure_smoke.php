@@ -21,6 +21,8 @@ $requiredPaths = [
     'src/handlers/media.php',
     'src/handlers/assets.php',
     'src/handlers/indexpage.php',
+    'css/index.css',
+    'css/show.css',
     'views/index.phtml',
     'logo.png',
     'og.png',
