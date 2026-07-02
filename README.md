@@ -13,21 +13,23 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 - Scans two directories — one for **podcasts**, one for **audiobooks** — and generates an RSS 2.0 + iTunes feed per subfolder
 - Serves a web index listing all feeds with cover art, episode count, and newest-episode age
 - Streams audio files with HTTP range-request support (seekable playback, resumable downloads)
-- **Podcasts** sort newest-first; **audiobooks** sort ascending by filename (chapter order)
+- **Podcasts** sort newest-first; **audiobooks** sort ascending by filename (chapter 1 first) — enforced via `pubDate` so podcast apps respect it regardless of their default sort
 - Picks up `cover.jpg` / `cover.png` / `folder.jpg` / `folder.png` as podcast artwork
 - Works correctly behind a reverse proxy (respects `X-Forwarded-Proto` / `X-Forwarded-Host`)
 - **Cleans up episode titles** automatically — raw filenames are transformed into readable labels before they appear in your podcast app (see [Episode title cleanup](#episode-title-cleanup))
 - **Rich link previews** — Open Graph and Twitter Card meta tags make shared links look great in iMessage, Slack, Discord, etc. Includes an `apple-touch-icon` for adding the page to the iOS home screen
+- **Subscribe in Apple Podcasts** — one-click button uses a clean path URL (`podcast://host/feed/…`) with no query string, so it works reliably in Chrome and Safari alike
+- **Accessible** — semantic landmarks, skip link, visible focus rings, reduced-motion support, emoji hidden from screen readers, `<time>` elements for dates (see [Accessibility](#accessibility))
 
 ## Requirements
 
 - PHP 8.1+
-- Any web server (Apache, nginx, Caddy, …)
+- Apache with `mod_rewrite` enabled (for the clean feed URL paths)
 
 ## Setup
 
-1. Copy `index.php` to your web root.
-2. Edit the constants at the top:
+1. Copy `index.php` and `.htaccess` to your web root (or virtual host directory).
+2. Edit the constants at the top of `index.php`:
 
 ```php
 const PODCAST_ROOT    = '/mnt/torrents/Podcasts';
@@ -53,7 +55,19 @@ PODCAST_ROOT/
    `favicon.png`) in the same directory as `index.php` so that link previews
    and browser icons work out of the box. The web server serves them directly.
 
-Each immediate subfolder becomes one feed, accessible at `?feed=Podcasts/My+Show`.
+Each immediate subfolder becomes one feed, accessible at `?feed=Podcasts/My+Show`
+or via the clean path `feed/Podcasts/My+Show`.
+
+## Subscribing in a podcast app
+
+Each card on the index page has two buttons:
+
+| Button | What it does |
+|---|---|
+| **Apple Podcasts** | Opens Apple Podcasts and subscribes immediately (works in Chrome and Safari on macOS and iOS) |
+| **Copy RSS** | Copies the raw RSS URL to the clipboard — paste it into any podcast app's "Add by URL" dialog |
+
+The "Apple Podcasts" link uses the `podcast://` URL scheme with a clean path (no query string). An Apache `mod_rewrite` rule maps `/feed/Show+Name` to the PHP RSS handler, which lets the link work reliably across all browsers. Without this, browsers sometimes strip query strings when handing off custom URL schemes to native apps.
 
 ## Episode title cleanup
 
@@ -63,7 +77,7 @@ into clean, readable labels:
 | Filename (no extension) | Episode title |
 |---|---|
 | `Papaya.2026-01-19` | `19. januar 2026` |
-| `tore.og.haralds.podcast.podme.2026.s09e10` | `S09E10` |
+| `tore.og.haralds.podcast.podme.2026.s09e10` | `Season 9 – Episode 10` |
 | `avsnitt042` | `Avsnitt 42` |
 | `07xKapittelx2xxFredagx20xxdesember` | `Kapittel 2` |
 | `01xMennxsomxhaterxkvinner` | `Menn som hater kvinner` |
@@ -84,16 +98,30 @@ Rules applied in order:
 2. **Feed-name prefix stripping** — if the filename starts with the feed/show
    name (or the title part after `"Author – "`), that prefix is removed.
    Separator characters are interchangeable during matching.
-3. **Pattern matching** — season/episode codes, ISO dates, `avsnitt`,
-   `xKapittel`-encoded chapters, `CD##T##`, `CD-NNN`, `NN-Track-XNN`, bare
-   Spor/Track numbers, Kassett sides, and 4-digit `CCTT` codes are each
-   detected and reformatted.
+3. **Pattern matching** — season/episode codes (`S09E10` → `Season 9 – Episode 10`),
+   ISO dates, `avsnitt`, `xKapittel`-encoded chapters, `CD##T##`, `CD-NNN`,
+   `NN-Track-XNN`, bare Spor/Track numbers, Kassett sides, and 4-digit `CCTT`
+   codes are each detected and reformatted.
 4. **Parent-directory CD context** — when a file lives inside a subfolder named
    `CD 1`, `cd01`, `Hodejegerne CD3`, etc., that disc number is attached to
    titles that lack it (e.g. a bare `05.mp3` becomes `CD 1, Spor 5`).
 5. **Generic cleanup** — leading track-sequence numbers (`01 - `, `02. `) are
    stripped, and the first letter is capitalised.
 
+## Accessibility
+
+The web index is built to work well for keyboard and screen-reader users:
+
+- **Skip link** — a "Skip to main content" link is the first focusable element on the page; it becomes visible on keyboard focus and lets users jump past the header and filter bar
+- **Semantic landmarks** — `<header>`, `<nav>`, `<main>`, and `<footer>` are used correctly so assistive technology can navigate by region
+- **Heading structure** — each podcast/audiobook card contains an `<h2>` heading, making it possible to navigate between shows with a screen reader's heading shortcut
+- **Emoji** — all decorative emoji (🎙, 📚) are wrapped in `aria-hidden="true"` so screen readers announce the text label only, not the emoji description
+- **Dates** — "Newest: 3 days ago" uses a `<time datetime="YYYY-MM-DD">` element so the machine-readable date is available to assistive technology
+- **Focus rings** — `:focus-visible` outlines on all interactive elements (links, buttons, filter tabs); `.btn.primary` uses a white outline so it is visible against the gradient background
+- **Reduced motion** — `@media (prefers-reduced-motion: reduce)` disables hover transitions and the button lift effect for users with the OS "Reduce Motion" setting enabled
+- **Copy RSS feedback** — when the clipboard write succeeds, the button's `aria-label` is updated to "Copied to clipboard" for the 2-second confirmation window, then restored
+
 ## License
 
 See [LICENSE](LICENSE).
+
