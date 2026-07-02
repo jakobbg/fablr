@@ -422,23 +422,6 @@
     </footer>
   </div>
 
-<script>
-function copyFeed(btn, url) {
-  if (!navigator.clipboard) {
-    prompt("Copy this feed URL:", url);
-    return;
-  }
-  navigator.clipboard.writeText(url).then(function () {
-    var orig = btn.textContent;
-    var origLabel = btn.getAttribute('aria-label');
-    btn.textContent = "Copied!";
-    btn.setAttribute('aria-label', 'Copied to clipboard');
-    setTimeout(function () {
-      btn.textContent = orig;
-      btn.setAttribute('aria-label', origLabel);
-    }, 2000);
-  });
-}
-</script>
+<script defer src="<?= h($assetBase . 'js/clipboard.js') ?>"></script>
 </body>
 </html>
