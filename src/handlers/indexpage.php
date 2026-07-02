@@ -9,6 +9,12 @@ function render_index_page(string $filter): void {
 
     $feeds = list_podcasts($filter);
 
+    // Strip feeds that have no downloaded content before pagination so each
+    // page always shows exactly FEEDS_PER_PAGE items (not fewer due to skips).
+    $feeds = array_values(array_filter($feeds, static function (array $f): bool {
+        return feed_has_content($f['dir']);
+    }));
+
     // Filter by search query before counting/paginating so stats only run for
     // feeds that will actually be rendered.
     $query = trim((string)($_GET['q'] ?? ''));
