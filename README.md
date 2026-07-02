@@ -38,7 +38,13 @@ const PODCAST_ROOT    = '/mnt/torrents/Podcasts';
 const PODCASTS_SUBDIR = 'Podcasts';
 const BOOKS_SUBDIR    = 'Books';
 const FEED_LANGUAGE   = 'no';
+const TRUSTED_PROXY_CIDRS = ['127.0.0.1/32', '::1/128'];
 ```
+
+`TRUSTED_PROXY_CIDRS` controls when `X-Forwarded-Proto` and
+`X-Forwarded-Host` are trusted. Only requests from those proxy IP ranges may
+set the public scheme/host used in generated links and RSS enclosure URLs.
+Add your reverse proxy IP/CIDR to this list when running behind a proxy.
 
 3. Organise your audio files into subfolders:
 
@@ -59,6 +65,9 @@ PODCAST_ROOT/
 
 Each immediate subfolder becomes one feed, accessible at `?feed=Podcasts/My+Show`
 or via the clean path `feed/Podcasts/My+Show`.
+
+Hidden (dot-prefixed) feed folders are not listed and are also rejected by
+direct feed resolution.
 
 ## Subscribing in a podcast app
 

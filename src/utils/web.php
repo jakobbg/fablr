@@ -1,25 +1,112 @@
 <?php
 declare(strict_types=1);
 
+function first_header_value(string $value): string {
+    $parts = explode(',', $value, 2);
+    return trim((string)$parts[0]);
+}
+
+function normalize_host(string $host): string {
+    $host = trim(str_replace(["\r", "\n"], '', $host));
+    if ($host === '') {
+        return '';
+    }
+    // Allow hostname/IP literals with optional port.
+    if (!preg_match('/^[A-Za-z0-9.\-:\[\]]+$/', $host)) {
+        return '';
+    }
+    return $host;
+}
+
+function ip_in_cidr(string $ip, string $cidr): bool {
+    $cidr = trim($cidr);
+    if ($cidr === '') {
+        return false;
+    }
+
+    if (!str_contains($cidr, '/')) {
+        return $ip === $cidr;
+    }
+
+    [$subnet, $prefix] = explode('/', $cidr, 2);
+    $subnetBin = @inet_pton($subnet);
+    $ipBin = @inet_pton($ip);
+    if ($subnetBin === false || $ipBin === false) {
+        return false;
+    }
+    if (strlen($subnetBin) !== strlen($ipBin)) {
+        return false;
+    }
+
+    $prefixLen = (int)$prefix;
+    $maxBits = strlen($subnetBin) * 8;
+    if ($prefixLen < 0 || $prefixLen > $maxBits) {
+        return false;
+    }
+
+    $fullBytes = intdiv($prefixLen, 8);
+    $remainingBits = $prefixLen % 8;
+
+    if ($fullBytes > 0) {
+        if (substr($ipBin, 0, $fullBytes) !== substr($subnetBin, 0, $fullBytes)) {
+            return false;
+        }
+    }
+
+    if ($remainingBits === 0) {
+        return true;
+    }
+
+    $mask = ((0xFF00 >> $remainingBits) & 0xFF);
+    $ipByte = ord($ipBin[$fullBytes]);
+    $subnetByte = ord($subnetBin[$fullBytes]);
+    return ($ipByte & $mask) === ($subnetByte & $mask);
+}
+
+function is_trusted_proxy_request(): bool {
+    $remoteAddr = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+    if ($remoteAddr === '') {
+        return false;
+    }
+
+    foreach (TRUSTED_PROXY_CIDRS as $cidr) {
+        if (ip_in_cidr($remoteAddr, (string)$cidr)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function base_url(): string {
+    $trustedProxy = is_trusted_proxy_request();
+
     $https = false;
-    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-        $https = strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        $proto = strtolower(first_header_value((string)$_SERVER['HTTP_X_FORWARDED_PROTO']));
+        $https = $proto === 'https';
     } elseif (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
         $https = true;
     }
 
     $host = '';
-    if (!empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-        $host = (string)$_SERVER['HTTP_X_FORWARDED_HOST'];
-    } elseif (!empty($_SERVER['HTTP_HOST'])) {
-        $host = (string)$_SERVER['HTTP_HOST'];
-    } else {
-        $host = (string)($_SERVER['SERVER_NAME'] ?? 'localhost');
+    if ($trustedProxy && !empty($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+        $host = normalize_host(first_header_value((string)$_SERVER['HTTP_X_FORWARDED_HOST']));
+    }
+    if ($host === '' && !empty($_SERVER['HTTP_HOST'])) {
+        $host = normalize_host((string)$_SERVER['HTTP_HOST']);
+    }
+    if ($host === '') {
+        $host = normalize_host((string)($_SERVER['SERVER_NAME'] ?? ''));
+    }
+    if ($host === '') {
+        $host = 'localhost';
     }
 
     $scheme = $https ? 'https' : 'http';
     $path = (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php');
+    if ($path === '' || $path[0] !== '/') {
+        $path = '/index.php';
+    }
     return $scheme . '://' . $host . $path;
 }
 

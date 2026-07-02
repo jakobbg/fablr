@@ -58,6 +58,7 @@ function resolve_feed_dir(string $feed): ?string {
 
     // Validate the name segment.
     if ($name === '' || $name === '.' || $name === '..') return null;
+    if ($name[0] === '.') return null;
     if (str_contains($name, '/') || str_contains($name, "\\")) return null;
 
     $dir = PODCAST_ROOT . DIRECTORY_SEPARATOR . $subdir . DIRECTORY_SEPARATOR . $name;
