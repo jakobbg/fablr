@@ -181,9 +181,23 @@
     border-radius: 14px;
     border: 1px solid var(--cardBorder);
     display: block;
-    margin: 0 0 12px;
     background: rgba(255,255,255,.06);
   }
+
+  /* Cover wrapper — positions the RSS copy icon over the artwork */
+  .cover-wrap { position: relative; margin-bottom: 12px; }
+  .cover-copy-btn {
+    position: absolute; bottom: 8px; right: 8px;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(0,0,0,.45); backdrop-filter: blur(6px);
+    color: rgba(255,255,255,.85); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .cover-copy-btn:hover { background: rgba(0,0,0,.65); color: #fff; }
+  .cover-copy-btn.copied { color: #4ade80; border-color: #4ade80; }
+  .cover-copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .pod-title {
     font-family: var(--font-sans);
@@ -458,11 +472,14 @@
           $badgeClass = $f['type'] === 'book' ? 'book' : 'podcast';
         ?>
           <section class="card" aria-label="<?php echo h($f['name']); ?>">
-            <?php if ($coverUrl !== null): ?>
-              <img class="cover" src="<?php echo h($coverUrl); ?>" alt="Cover art for <?php echo h($f['name']); ?>" loading="lazy" />
-            <?php else: ?>
-              <?php echo cover_placeholder_svg($f['name'], $f['name']); ?>
-            <?php endif; ?>
+            <div class="cover-wrap">
+              <?php if ($coverUrl !== null): ?>
+                <img class="cover" src="<?php echo h($coverUrl); ?>" alt="Cover art for <?php echo h($f['name']); ?>" loading="lazy" />
+              <?php else: ?>
+                <?php echo cover_placeholder_svg($f['name'], $f['name']); ?>
+              <?php endif; ?>
+              <button class="cover-copy-btn" onclick="copyRssFeed(this,'<?php echo h(addslashes($rss)); ?>')" title="Copy RSS feed URL" aria-label="Copy RSS feed URL for <?php echo h($f['name']); ?>"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+            </div>
             <span class="type-badge <?php echo $badgeClass; ?>"><span aria-hidden="true"><?php echo $badgeEmoji; ?></span> <?php echo h($badgeLabel); ?></span>
             <h2 class="pod-title"><?php echo h($f['name']); ?></h2>
             <div class="meta">
@@ -470,7 +487,6 @@
             </div>
             <div class="actions">
               <a href="<?php echo h($showUrl); ?>" class="btn" aria-label="View episodes for <?php echo h($f['name']); ?>">Details</a>
-              <button type="button" class="btn" onclick="copyFeed(this,'<?php echo h(addslashes($rss)); ?>')" aria-label="Copy RSS feed URL for <?php echo h($f['name']); ?>">Copy RSS</button>
               <a href="<?php echo h($podcastUrl); ?>" class="btn primary" aria-label="Open <?php echo h($f['name']); ?> in Apple Podcasts"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="vertical-align:-1px;flex-shrink:0"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg> Podcasts</a>
             </div>
           </section>
@@ -498,11 +514,21 @@
 
     <div class="divider"></div>
     <footer class="site-footer">
-      <p>Tap <strong>Apple Podcasts</strong> to subscribe directly. Use <strong>Copy RSS</strong> to paste the feed URL into any other podcast app.</p>
+      <p>Tap <strong>Apple Podcasts</strong> to subscribe directly. Use the <strong>clipboard icon</strong> on each cover to copy the RSS URL into any other podcast app.</p>
     </footer>
   </div>
 
 <script>
+function copyRssFeed(btn, url) {
+  var SVG_COPY  = btn.innerHTML;
+  var SVG_CHECK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+  if (!navigator.clipboard) { prompt('Copy this feed URL:', url); return; }
+  navigator.clipboard.writeText(url).then(function () {
+    btn.innerHTML = SVG_CHECK;
+    btn.classList.add('copied');
+    setTimeout(function () { btn.innerHTML = SVG_COPY; btn.classList.remove('copied'); }, 2000);
+  });
+}
 function copyFeed(btn, url) {
   if (!navigator.clipboard) { prompt('Copy this feed URL:', url); return; }
   navigator.clipboard.writeText(url).then(function () {
