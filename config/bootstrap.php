@@ -2,11 +2,11 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/constants.php';
-require_once __DIR__ . '/../src/Utils/Web.php';
-require_once __DIR__ . '/../src/Utils/Media.php';
-require_once __DIR__ . '/../src/Feed/Library.php';
-require_once __DIR__ . '/../src/Title/Library.php';
-require_once __DIR__ . '/../src/Handlers/Rss.php';
-require_once __DIR__ . '/../src/Handlers/Media.php';
-require_once __DIR__ . '/../src/Handlers/Assets.php';
-require_once __DIR__ . '/../src/Handlers/IndexPage.php';
+require_once __DIR__ . '/../src/utils/web.php';
+require_once __DIR__ . '/../src/utils/media.php';
+require_once __DIR__ . '/../src/feed/library.php';
+require_once __DIR__ . '/../src/title/library.php';
+require_once __DIR__ . '/../src/handlers/rss.php';
+require_once __DIR__ . '/../src/handlers/media.php';
+require_once __DIR__ . '/../src/handlers/assets.php';
+require_once __DIR__ . '/../src/handlers/indexpage.php';
