@@ -192,9 +192,10 @@
 
     .actions {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 8px;
+      flex-wrap: nowrap;
       margin-top: auto;
+      overflow: hidden;
     }
 
     .btn {
@@ -371,7 +372,7 @@
             <div class="actions">
               <a href="<?php echo h($showUrl); ?>" class="btn" aria-label="View episodes for <?php echo h($f['name']); ?>">Details</a>
               <button type="button" class="btn" onclick="copyFeed(this,'<?php echo h(addslashes($rss)); ?>')" aria-label="Copy RSS feed URL for <?php echo h($f['name']); ?>">Copy RSS</button>
-              <a href="<?php echo h($podcastUrl); ?>" class="btn primary" aria-label="Open <?php echo h($f['name']); ?> in Apple Podcasts">Apple Podcasts</a>
+              <a href="<?php echo h($podcastUrl); ?>" class="btn primary" aria-label="Open <?php echo h($f['name']); ?> in Apple Podcasts"><span aria-hidden="true"> Podcasts</span></a>
             </div>
           </section>
         <?php endforeach; ?>
