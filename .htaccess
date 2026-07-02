@@ -8,3 +8,7 @@ RewriteEngine On
 # path don't land as literal spaces in the query string (Apache rejects those).
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^feed/(.+)$ index.php?feed=$1 [L,QSA,B]
+
+# Route clean show detail paths.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^show/(.+)$ index.php?show=$1 [L,QSA,B]
