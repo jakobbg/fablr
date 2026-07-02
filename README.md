@@ -12,6 +12,7 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 
 - Scans two directories — one for **podcasts**, one for **audiobooks** — and generates an RSS 2.0 + iTunes feed per subfolder
 - Serves a web index listing all feeds with cover art, episode count, and newest-episode age
+- **Feed detail page** — click *Details* on any card to open a page showing the full episode list with file format, size, duration, and bitrate per track, plus a built-in audio player so you can play any episode directly in the browser
 - Streams audio files with HTTP range-request support (seekable playback, resumable downloads)
 - **Podcasts** sort newest-first; **audiobooks** sort ascending by filename (chapter 1 first) — enforced via `pubDate` so podcast apps respect it regardless of their default sort
 - Picks up `cover.jpg` / `cover.png` / `folder.jpg` / `folder.png` as podcast artwork
@@ -52,9 +53,11 @@ PODCAST_ROOT/
 ├── Podcasts/
 │   └── My Show/
 │       ├── cover.jpg
+│       ├── notes.md          ← optional custom description (Markdown)
 │       └── episode.2024-01-01.mp3
 └── Books/
     └── Some Audiobook/
+        ├── notes.md          ← optional custom description (Markdown)
         └── 01-chapter.m4b
 ```
 
@@ -70,14 +73,30 @@ direct feed resolution.
 
 ## Subscribing in a podcast app
 
-Each card on the index page has two buttons:
+Each card on the index page has three buttons:
 
 | Button | What it does |
 |---|---|
-| **Apple Podcasts** | Opens Apple Podcasts and subscribes immediately (works in Chrome and Safari on macOS and iOS) |
+| **Details** | Opens the feed detail page — full episode list, per-track metadata, and built-in browser player |
 | **Copy RSS** | Copies the raw RSS URL to the clipboard — paste it into any podcast app's "Add by URL" dialog |
+| **Podcasts** | Opens Apple Podcasts and subscribes immediately (works in Chrome and Safari on macOS and iOS) |
 
-The "Apple Podcasts" link uses the `podcast://` URL scheme with a clean path (no query string). An Apache `mod_rewrite` rule maps `/feed/Show+Name` to the PHP RSS handler, which lets the link work reliably across all browsers. Without this, browsers sometimes strip query strings when handing off custom URL schemes to native apps.
+The Apple Podcasts link uses the `podcast://` URL scheme with a clean path (no query string). An Apache `mod_rewrite` rule maps `/feed/Show+Name` to the PHP RSS handler, which lets the link work reliably across all browsers. Without this, browsers sometimes strip query strings when handing off custom URL schemes to native apps.
+
+## Feed detail page
+
+Each feed has a detail page at `show/Podcasts/My+Show` (or `?show=Podcasts/My+Show`). It shows:
+
+- Cover art, type badge, and title (with author/year from Open Library when metadata is enabled)
+- Stats: episode count, total duration, total file size, newest episode date
+- RSS and Apple Podcasts action buttons
+- **Description** — rendered from `notes.md` if the file exists in the feed directory, otherwise falls back to the Open Library summary
+- **Episode table** — every track listed with cleaned title, duration, file size, format badge, estimated bitrate, and date
+- **Built-in player** — a sticky bar slides up from the bottom when you click any episode's play button; supports seek, pause/resume, and close; the active row shows a pause icon while playing
+
+**Adding a custom description**
+
+Drop a `notes.md` file into any feed folder and it will appear on the detail page rendered as Markdown. Supports headings, bold/italic, code, lists, blockquotes, and links.
 
 ## Smoke tests
 
