@@ -1,5 +1,9 @@
 # phodcasts
 
+<p align="center">
+  <img src="logo.png" alt="phodcasts logo" width="160">
+</p>
+
 A single-file PHP server that turns a folder of audio files into podcast-app-compatible RSS feeds. Point it at a directory, and every subfolder becomes a subscribable podcast feed — no database, no dependencies, no configuration beyond four constants at the top of the file.
 
 Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a NAS and want to re-subscribe to them in a standard podcast app (Apple Podcasts, Overcast, Pocket Casts, etc.).
