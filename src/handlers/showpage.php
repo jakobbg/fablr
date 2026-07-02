@@ -20,9 +20,21 @@ function load_episode_cache(string $feedId): array {
 }
 
 function save_episode_cache(string $feedId, array $cache): void {
-    $dir = dirname(episode_cache_path($feedId));
-    if (!is_dir($dir)) @mkdir($dir, 0750, true);
-    @file_put_contents(episode_cache_path($feedId), json_encode($cache), LOCK_EX);
+    $path = episode_cache_path($feedId);
+    $dir  = dirname($path);
+    if (!is_dir($dir)) {
+        $root = dirname($dir);
+        if (is_dir($root) && !is_writable($root)) {
+            @chmod($root, 0777);
+        }
+        if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
+            error_log("phodcasts: cannot create episode cache dir {$dir} — check permissions on cache/");
+            return;
+        }
+    }
+    if (file_put_contents($path, json_encode($cache), LOCK_EX) === false) {
+        error_log("phodcasts: cannot write episode cache {$path} — check permissions on cache/episodes/");
+    }
 }
 
 // ── Show page ─────────────────────────────────────────────────────────────────

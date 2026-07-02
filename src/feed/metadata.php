@@ -36,15 +36,23 @@ function load_metadata_cache(string $feedId): ?array {
 }
 
 function save_metadata_cache(string $feedId, array $data): void {
-    $dir = dirname(metadata_cache_path($feedId));
+    $path = metadata_cache_path($feedId);
+    $dir  = dirname($path);
     if (!is_dir($dir)) {
-        @mkdir($dir, 0750, true);
+        // Ensure cache root is writable; chmod is a best-effort fix for NAS
+        // deployments where the directory is owned by a different user.
+        $root = dirname($dir);
+        if (is_dir($root) && !is_writable($root)) {
+            @chmod($root, 0777);
+        }
+        if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
+            error_log("phodcasts: cannot create metadata cache dir {$dir} — check permissions on cache/");
+            return;
+        }
     }
-    @file_put_contents(
-        metadata_cache_path($feedId),
-        json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-        LOCK_EX
-    );
+    if (file_put_contents($path, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX) === false) {
+        error_log("phodcasts: cannot write metadata cache {$path} — check permissions on cache/metadata/");
+    }
 }
 
 function openlibrary_get(string $url): ?array {
