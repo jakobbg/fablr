@@ -94,6 +94,7 @@ Each feed has a detail page at `show/Podcasts/My+Show` (or `?show=Podcasts/My+Sh
 - **Episode table** — every track listed with cleaned title, duration, file size, format badge, estimated bitrate, and date
 - **Built-in player** — a sticky bar slides up from the bottom when you click any episode's play button; supports seek, pause/resume, and close; the active row shows a pause icon while playing. Toggle **⇥ Auto** in the player bar to enable auto-advance: each episode automatically plays the next one when it ends, so you can listen to a whole show without touching the screen
 - **Rich link previews** — the show page includes Open Graph and Twitter Card meta tags so sharing a show URL in iMessage, X, Facebook, Slack, Discord, etc. shows the show's cover art, title, and a summary (episode count, total duration, author for audiobooks). Falls back to the site `og.png` when no cover image is present
+- **Cover-art colour theming** — when a cover image is present the page automatically adapts its colour scheme to match: the dominant hue is sampled from the artwork via the Canvas API and applied across backgrounds, gradient buttons, badges, the sticky player, and progress bar, making each show visually distinct
 
 **Adding a custom description**
 
