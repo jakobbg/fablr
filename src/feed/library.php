@@ -224,3 +224,22 @@ function pubdate_from_filename(string $relPath): ?int {
     }
     return $dt->getTimestamp();
 }
+
+/**
+ * Returns true as soon as one non-empty audio file is found in the feed
+ * directory. Exits early, so it is much faster than podcast_stats().
+ * Used to filter placeholder/stub feeds before pagination.
+ */
+function feed_has_content(string $feedDir): bool {
+    $allowed = allowed_media_mimes();
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($feedDir, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($it as $fi) {
+        /** @var SplFileInfo $fi */
+        if (!$fi->isFile()) continue;
+        if (!isset($allowed[strtolower((string)$fi->getExtension())])) continue;
+        if ($fi->getSize() > 0) return true;
+    }
+    return false;
+}
