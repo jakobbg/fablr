@@ -27,14 +27,27 @@ $runBaseUrl = static function (array $server): string {
 
 try {
     $assertSame(
-        'forwarded proto and host take precedence',
+        'trusted proxy uses forwarded proto and host',
         $runBaseUrl([
+            'REMOTE_ADDR' => '127.0.0.1',
             'HTTP_X_FORWARDED_PROTO' => 'https',
             'HTTP_X_FORWARDED_HOST' => 'proxy.example.com',
             'HTTP_HOST' => 'ignored.example.com',
             'SCRIPT_NAME' => '/index.php',
         ]),
         'https://proxy.example.com/index.php'
+    );
+
+    $assertSame(
+        'untrusted proxy headers are ignored',
+        $runBaseUrl([
+            'REMOTE_ADDR' => '203.0.113.5',
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+            'HTTP_X_FORWARDED_HOST' => 'proxy.example.com',
+            'HTTP_HOST' => 'public.example.com',
+            'SCRIPT_NAME' => '/index.php',
+        ]),
+        'http://public.example.com/index.php'
     );
 
     $assertSame(
