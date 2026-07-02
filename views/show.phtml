@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title><?= h($name) ?> – phodcasts</title>
+  <link rel="icon" type="image/png" href="<?= h($assetBase . 'favicon.png') ?>">
+  <style>
+    :root {
+      --bg: #0b1220; --bg2: #0d1b2e;
+      --card: rgba(255,255,255,.08); --cardBorder: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92); --muted: rgba(255,255,255,.70);
+      --shadow: rgba(0,0,0,.28); --accent: #7c3aed; --accent2: #06b6d4;
+      --radius: 18px;
+      --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
+      --font-serif: ui-serif, "New York", "Palatino Linotype", Georgia, serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f7fb; --bg2: #eef2ff;
+        --card: rgba(255,255,255,.75); --cardBorder: rgba(15,23,42,.12);
+        --text: rgba(15,23,42,.92); --muted: rgba(15,23,42,.66);
+        --shadow: rgba(15,23,42,.14);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: var(--font-sans); line-height: 1.5;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 500px at 10% 0%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(6,182,212,.25), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      background-attachment: fixed;
+    }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 2px solid rgba(124,58,237,.55); outline-offset: 3px; border-radius: 6px; }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 32px 20px 56px; }
+
+    /* Back link */
+    .back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px;
+      color: var(--muted); font-size: 14px; font-weight: 600; }
+    .back:hover { color: var(--text); }
+
+    /* Hero card */
+    .hero { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap;
+      padding: 24px; margin-bottom: 24px;
+      background: var(--card); border: 1px solid var(--cardBorder);
+      border-radius: var(--radius); backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px var(--shadow); }
+    .cover {
+      width: 180px; height: 180px; flex-shrink: 0;
+      object-fit: cover; border-radius: 12px; border: 1px solid var(--cardBorder);
+      background: rgba(255,255,255,.06);
+    }
+    .cover-placeholder {
+      width: 180px; height: 180px; flex-shrink: 0;
+      border-radius: 12px; border: 1px solid var(--cardBorder);
+      background: rgba(255,255,255,.04);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px;
+    }
+    .hero-body { flex: 1; min-width: 200px; }
+    .type-badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      letter-spacing: .4px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 999px; margin-bottom: 10px;
+    }
+    .type-badge.podcast { background: rgba(124,58,237,.22); color: #a78bfa; border: 1px solid rgba(124,58,237,.35); }
+    .type-badge.book    { background: rgba(6,182,212,.18);  color: #67e8f9; border: 1px solid rgba(6,182,212,.30); }
+    @media (prefers-color-scheme: light) {
+      .type-badge.podcast { background: rgba(124,58,237,.10); color: #6d28d9; border-color: rgba(124,58,237,.25); }
+      .type-badge.book    { background: rgba(6,182,212,.10);  color: #0e7490; border-color: rgba(6,182,212,.25); }
+    }
+    h1 { margin: 0 0 4px; font-family: var(--font-serif); font-size: clamp(22px, 3vw, 32px);
+      font-weight: 700; letter-spacing: .1px; }
+    .hero-sub { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+    .stats { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+    .stat { display: flex; flex-direction: column; }
+    .stat-val { font-size: 20px; font-weight: 700; line-height: 1; }
+    .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
+
+    /* Hero actions */
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 14px; border-radius: 10px;
+      border: 1px solid var(--cardBorder); background: rgba(255,255,255,.06);
+      color: var(--text); font-weight: 650; font-size: 13px; cursor: pointer;
+      transition: background .12s ease;
+    }
+    .btn:hover { background: rgba(255,255,255,.12); }
+    .btn.primary {
+      border-color: rgba(124,58,237,.55);
+      background: linear-gradient(135deg, rgba(124,58,237,.92), rgba(6,182,212,.72));
+      color: white;
+    }
+    .btn.primary:hover { background: linear-gradient(135deg, rgba(124,58,237,1), rgba(6,182,212,.85)); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .btn.primary:focus-visible { outline-color: #fff; }
+
+    /* Description / notes card */
+    .desc-card {
+      padding: 20px 24px; margin-bottom: 24px;
+      background: var(--card); border: 1px solid var(--cardBorder);
+      border-radius: var(--radius); backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px var(--shadow);
+    }
+    .desc-card h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+    .desc-body { font-size: 15px; line-height: 1.7; color: var(--text); }
+    .desc-body p { margin: 0 0 .8em; }
+    .desc-body h1, .desc-body h2, .desc-body h3, .desc-body h4, .desc-body h5, .desc-body h6 {
+      margin: 1em 0 .4em; font-family: var(--font-serif); }
+    .desc-body ul, .desc-body ol { margin: .4em 0 .8em 1.4em; padding: 0; }
+    .desc-body li { margin-bottom: .2em; }
+    .desc-body blockquote {
+      margin: .8em 0; padding: .4em 1em; border-left: 3px solid var(--accent);
+      background: rgba(124,58,237,.08); border-radius: 0 6px 6px 0;
+    }
+    .desc-body code { font-family: var(--font-mono); font-size: .88em;
+      padding: .1em .35em; background: rgba(255,255,255,.08); border-radius: 4px; }
+    .desc-body pre { background: rgba(0,0,0,.25); border-radius: 8px;
+      padding: 12px 14px; overflow-x: auto; margin: .8em 0; }
+    .desc-body pre code { background: none; padding: 0; }
+    .desc-body hr { border: none; border-top: 1px solid var(--cardBorder); margin: 1em 0; }
+    .desc-body a { color: #a78bfa; text-decoration: underline; text-underline-offset: 2px; }
+
+    /* Episode table */
+    .episodes-card {
+      padding: 0; margin-bottom: 24px;
+      background: var(--card); border: 1px solid var(--cardBorder);
+      border-radius: var(--radius); backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px var(--shadow); overflow: hidden;
+    }
+    .episodes-header { padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--cardBorder); }
+    .episodes-header h2 { margin: 0; font-size: 14px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .4px; color: var(--muted);
+      border-bottom: 1px solid var(--cardBorder); white-space: nowrap;
+    }
+    th.r, td.r { text-align: right; }
+    th.c, td.c { text-align: center; }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,.05); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.04); }
+    td { padding: 10px 12px; vertical-align: middle; }
+    td.num { color: var(--muted); font-variant-numeric: tabular-nums; }
+    td.title { max-width: 340px; }
+    td.dur, td.sz, td.kbps, td.dt { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .fmt-badge {
+      display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .3px;
+      padding: 2px 6px; border-radius: 5px;
+      background: rgba(124,58,237,.18); color: #a78bfa; border: 1px solid rgba(124,58,237,.28);
+    }
+    @media (prefers-color-scheme: light) {
+      tbody tr { border-bottom-color: rgba(15,23,42,.06); }
+      tbody tr:hover { background: rgba(15,23,42,.03); }
+      .desc-body code { background: rgba(15,23,42,.06); }
+      .desc-body pre { background: rgba(15,23,42,.06); }
+      .fmt-badge { background: rgba(124,58,237,.10); color: #6d28d9; border-color: rgba(124,58,237,.22); }
+    }
+    @media (max-width: 600px) {
+      .cover, .cover-placeholder { width: 110px; height: 110px; font-size: 36px; }
+      .stat-val { font-size: 16px; }
+      .th-kbps, .td-kbps, .th-dt, .td-dt { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <a href="<?= h($base) ?>" class="back">← All feeds</a>
+
+  <div class="hero">
+    <?php if ($coverUrl !== null): ?>
+      <img class="cover" src="<?= h($coverUrl) ?>" alt="Cover art for <?= h($name) ?>">
+    <?php else: ?>
+      <div class="cover-placeholder" aria-hidden="true"><?= $feedType === 'book' ? '📚' : '🎙' ?></div>
+    <?php endif; ?>
+
+    <div class="hero-body">
+      <span class="type-badge <?= h($feedType) ?>">
+        <span aria-hidden="true"><?= $feedType === 'book' ? '📚' : '🎙' ?></span>
+        <?= $feedType === 'book' ? 'Audio Book' : 'Podcast' ?>
+      </span>
+
+      <h1><?php
+        $displayTitle = ($meta !== null && !empty($meta['title'])) ? $meta['title'] : $name;
+        echo h($displayTitle);
+      ?></h1>
+
+      <?php if ($meta !== null && !empty($meta['author'])): ?>
+        <p class="hero-sub"><?= h($meta['author']) ?><?php if (!empty($meta['year'])): ?> · <?= (int)$meta['year'] ?><?php endif; ?></p>
+      <?php elseif ($feedType === 'podcast'): ?>
+        <p class="hero-sub"><?= h($name) ?></p>
+      <?php endif; ?>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-val"><?= $episodeCount ?></span>
+          <span class="stat-lbl"><?= $feedType === 'book' ? 'Chapters' : 'Episodes' ?></span>
+        </div>
+        <?php if ($totalDuration !== null): ?>
+        <div class="stat">
+          <span class="stat-val"><?= h(format_duration($totalDuration)) ?></span>
+          <span class="stat-lbl">Total duration</span>
+        </div>
+        <?php endif; ?>
+        <div class="stat">
+          <span class="stat-val"><?= h(format_filesize($totalSize)) ?></span>
+          <span class="stat-lbl">Total size</span>
+        </div>
+        <?php if ($feedType === 'podcast' && $newestTs !== null): ?>
+        <div class="stat">
+          <span class="stat-val" style="font-size:14px"><?= h(human_age($newestTs) ?? '—') ?></span>
+          <span class="stat-lbl">Newest</span>
+        </div>
+        <?php endif; ?>
+      </div>
+
+      <?php
+        $rssUrl = $base . '?' . http_build_query(['feed' => $feed]);
+        $encodedId = implode('/', array_map('rawurlencode', explode('/', $feed)));
+        $podcastUrl = preg_replace('#^https?://#i', 'podcast://', $assetBase . 'feed/' . $encodedId);
+      ?>
+      <div class="hero-actions">
+        <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($rssUrl)) ?>')" aria-label="Copy RSS feed URL">Copy RSS</button>
+        <a href="<?= h($podcastUrl) ?>" class="btn primary" aria-label="Open in Apple Podcasts">Apple Podcasts</a>
+      </div>
+    </div>
+  </div>
+
+  <?php if ($notes !== null || ($meta !== null && !empty($meta['description']))): ?>
+  <div class="desc-card">
+    <h2><?= $notes !== null ? 'Notes' : 'About' ?></h2>
+    <div class="desc-body">
+      <?php if ($notes !== null): ?>
+        <?= $notes ?>
+      <?php elseif ($meta !== null && !empty($meta['description'])): ?>
+        <p><?= h((string)$meta['description']) ?></p>
+      <?php endif; ?>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <div class="episodes-card">
+    <div class="episodes-header">
+      <h2><?= $feedType === 'book' ? 'Chapters' : 'Episodes' ?></h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="r" style="width:36px">#</th>
+            <th>Title</th>
+            <th class="r">Duration</th>
+            <th class="r">Size</th>
+            <th class="c">Format</th>
+            <th class="r th-kbps">Bitrate</th>
+            <?php if ($feedType === 'podcast'): ?><th class="r th-dt">Date</th><?php endif; ?>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($mediaFiles as $idx => $f):
+            $epTitle   = episode_title($f['rel'], $name);
+            $fmt       = strtoupper(pathinfo($f['path'], PATHINFO_EXTENSION));
+            $kbps      = estimate_bitrate_kbps($f['size'], $f['duration']);
+            $pubDate   = $feedType === 'podcast' && $f['pub_ts'] !== null
+                ? gmdate('Y-m-d', (int)$f['pub_ts'])
+                : null;
+          ?>
+          <tr>
+            <td class="r num"><?= $idx + 1 ?></td>
+            <td class="title"><?= h($epTitle) ?></td>
+            <td class="r dur"><?= h(format_duration($f['duration'])) ?></td>
+            <td class="r sz"><?= h(format_filesize($f['size'])) ?></td>
+            <td class="c"><span class="fmt-badge"><?= h($fmt) ?></span></td>
+            <td class="r td-kbps kbps"><?= $kbps !== null ? h((string)$kbps) . ' kbps' : '—' ?></td>
+            <?php if ($feedType === 'podcast'): ?>
+              <td class="r td-dt dt"><?= $pubDate !== null ? h($pubDate) : '—' ?></td>
+            <?php endif; ?>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function copyFeed(btn, url) {
+  if (!navigator.clipboard) { prompt("Copy this feed URL:", url); return; }
+  navigator.clipboard.writeText(url).then(function () {
+    var orig = btn.textContent, origLabel = btn.getAttribute('aria-label');
+    btn.textContent = "Copied!";
+    btn.setAttribute('aria-label', 'Copied to clipboard');
+    setTimeout(function () { btn.textContent = orig; btn.setAttribute('aria-label', origLabel); }, 2000);
+  });
+}
+</script>
+</body>
+</html>

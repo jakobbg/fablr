@@ -6,7 +6,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/config/bootstrap.php';
 
 $action = (string)($_GET['action'] ?? '');
-$feed = (string)($_GET['feed'] ?? '');
+$feed   = (string)($_GET['feed'] ?? '');
+$show   = (string)($_GET['show'] ?? '');
 
 if ($action === 'img') {
   $name = (string)($_GET['name'] ?? '');
@@ -36,6 +37,11 @@ if ($feed !== '') {
     }
     $feedType = str_starts_with($feed, BOOKS_SUBDIR . '/') ? 'book' : 'podcast';
     send_rss($feed, $feedDir, $feedType);
+    exit;
+}
+
+if ($show !== '') {
+    render_show_page($show);
     exit;
 }
 

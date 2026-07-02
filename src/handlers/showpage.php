@@ -1,0 +1,97 @@
+<?php
+declare(strict_types=1);
+
+// ── Episode duration cache ────────────────────────────────────────────────────
+// Cache lives at cache/episodes/{sha1(feedId)}.json.
+// Structure: { "/abs/path/to/file.mp3": { "mtime": 123, "duration": 3600.0 } }
+// A null duration means parsing was attempted but failed.
+
+function episode_cache_path(string $feedId): string {
+    return __DIR__ . '/../../cache/episodes/' . sha1($feedId) . '.json';
+}
+
+function load_episode_cache(string $feedId): array {
+    $path = episode_cache_path($feedId);
+    if (!is_file($path)) return [];
+    $raw = @file_get_contents($path);
+    if ($raw === false) return [];
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
+}
+
+function save_episode_cache(string $feedId, array $cache): void {
+    $dir = dirname(episode_cache_path($feedId));
+    if (!is_dir($dir)) @mkdir($dir, 0750, true);
+    @file_put_contents(episode_cache_path($feedId), json_encode($cache), LOCK_EX);
+}
+
+// ── Show page ─────────────────────────────────────────────────────────────────
+
+function render_show_page(string $feed): void {
+    $feedDir = resolve_feed_dir($feed);
+    if ($feedDir === null) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo "Unknown feed";
+        return;
+    }
+
+    $feedType = str_starts_with($feed, BOOKS_SUBDIR . '/') ? 'book' : 'podcast';
+    $name     = basename($feed);
+    $base     = base_url();
+    $assetBase = substr($base, 0, strrpos($base, '/') + 1);
+
+    // Open Library metadata (books only, when enabled).
+    $meta = null;
+    if ($feedType === 'book' && FETCH_BOOK_METADATA) {
+        $meta = fetch_book_metadata($feed, $name);
+    }
+
+    // Optional notes.md in the feed directory.
+    $notes    = null;
+    $notesPath = $feedDir . DIRECTORY_SEPARATOR . 'notes.md';
+    if (is_file($notesPath) && is_readable($notesPath)) {
+        $raw = @file_get_contents($notesPath);
+        if ($raw !== false) {
+            $notes = render_markdown($raw);
+        }
+    }
+
+    // Enumerate media files (already ordered correctly for the feed type).
+    $mediaFiles = find_media_files($feedDir, $feedType);
+
+    // Enrich each file with duration from cache or fresh parse.
+    $cache   = load_episode_cache($feed);
+    $changed = false;
+    foreach ($mediaFiles as &$f) {
+        $key = $f['path'];
+        if (array_key_exists($key, $cache) && $cache[$key]['mtime'] === $f['mtime']) {
+            $f['duration'] = $cache[$key]['duration']; // may be null (cached miss)
+        } else {
+            $f['duration'] = audio_duration($f['path']);
+            $cache[$key]   = ['mtime' => $f['mtime'], 'duration' => $f['duration']];
+            $changed       = true;
+        }
+    }
+    unset($f);
+    if ($changed) save_episode_cache($feed, $cache);
+
+    // Aggregate stats.
+    $totalSize     = (int)array_sum(array_column($mediaFiles, 'size'));
+    $durations     = array_filter(array_column($mediaFiles, 'duration'), fn($d) => $d !== null);
+    $totalDuration = !empty($durations) ? (float)array_sum($durations) : null;
+    $episodeCount  = count($mediaFiles);
+
+    // Cover image URL.
+    $coverImgPath = discover_image($feedDir);
+    $coverUrl     = $coverImgPath !== null ? media_url($feed, basename($coverImgPath)) : null;
+
+    // Newest episode date.
+    $newestTs    = null;
+    $sortTs      = array_column($mediaFiles, 'sort_ts');
+    if (!empty($sortTs)) $newestTs = (int)max($sortTs);
+
+    header('Content-Type: text/html; charset=UTF-8');
+    send_security_headers('html');
+    require __DIR__ . '/../../views/show.phtml';
+}

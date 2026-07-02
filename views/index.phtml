@@ -339,9 +339,10 @@
           // Browsers pass custom URL schemes to the OS far more reliably when
           // the URL is a simple path - query strings are routinely dropped by
           // Chrome and others before handing off to the native app handler.
-          $encodedId   = implode('/', array_map('rawurlencode', explode('/', $f['id'])));
+          $encodedId    = implode('/', array_map('rawurlencode', explode('/', $f['id'])));
           $cleanFeedUrl = $assetBase . 'feed/' . $encodedId;
           $podcastUrl   = preg_replace('#^https?://#i', 'podcast://', $cleanFeedUrl);
+          $showUrl      = $assetBase . 'show/' . $encodedId;
 
           $stats = podcast_stats($f['dir']);
           $episodeCount = (int)$stats['count'];
@@ -368,6 +369,7 @@
               <?php echo (int)$episodeCount; ?> episodes<?php if ($newestHuman !== null): ?> &middot; Newest: <time datetime="<?php echo h((string)$newestIso); ?>"><?php echo h($newestHuman); ?></time><?php endif; ?>
             </div>
             <div class="actions">
+              <a href="<?php echo h($showUrl); ?>" class="btn" aria-label="View episodes for <?php echo h($f['name']); ?>">Details</a>
               <button type="button" class="btn" onclick="copyFeed(this,'<?php echo h(addslashes($rss)); ?>')" aria-label="Copy RSS feed URL for <?php echo h($f['name']); ?>">Copy RSS</button>
               <a href="<?php echo h($podcastUrl); ?>" class="btn primary" aria-label="Open <?php echo h($f['name']); ?> in Apple Podcasts">Apple Podcasts</a>
             </div>
