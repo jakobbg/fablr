@@ -348,6 +348,34 @@
   }
   .theme-toggle:hover { background: rgba(255,255,255,.15); color: var(--text); }
   .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Search */
+  .search-wrap { display: flex; align-items: center; margin-left: auto; position: relative; }
+  .search-input {
+    -webkit-appearance: none; appearance: none;
+    padding: 7px 30px 7px 12px; border-radius: 999px;
+    border: 1px solid var(--cardBorder); background: rgba(255,255,255,.06);
+    color: var(--text); font-size: 14px; font-family: var(--font-sans);
+    width: 160px; outline: none;
+    transition: width .2s ease, border-color .15s, background .15s;
+  }
+  .search-input:focus { width: 220px; border-color: rgba(124,58,237,.55); background: rgba(255,255,255,.09); }
+  .search-input::placeholder { color: var(--muted); }
+  .search-action {
+    position: absolute; right: 10px; background: none; border: none; padding: 0;
+    color: var(--muted); cursor: pointer;
+    display: inline-flex; align-items: center;
+    font-size: 13px; line-height: 1; text-decoration: none;
+  }
+  .search-action:hover { color: var(--text); }
+  @media (prefers-color-scheme: light) {
+    html:not([data-theme="dark"]) .search-input { background: rgba(255,255,255,.75); }
+  }
+  html[data-theme="light"] .search-input { background: rgba(255,255,255,.75); }
+  @media (max-width: 500px) {
+    .search-wrap { margin-left: 0; }
+    .search-input, .search-input:focus { width: 100%; }
+  }
   </style>
   <script defer src="<?= h($assetBase . 'js/theme.js') ?>"></script>
 </head>
@@ -375,12 +403,23 @@
       ?>
         <a class="filter-btn<?php echo $active; ?>" href="<?php echo h($href); ?>" title="<?php echo h($info['title']); ?>"<?php echo $aria; ?>><span aria-hidden="true"><?php echo $info['icon']; ?></span> <?php echo h($info['text']); ?></a>
       <?php endforeach; ?>
+      <form class="search-wrap" role="search">
+        <input type="hidden" name="filter" value="<?php echo h($filter); ?>">
+        <input type="search" id="feed-search" class="search-input" name="q"
+               placeholder="Search…" value="<?php echo h($query); ?>"
+               autocomplete="off" spellcheck="false" aria-label="Search feeds">
+        <?php if ($query !== ''): ?>
+          <a href="<?php echo h($base . '?' . http_build_query(['filter' => $filter])); ?>" class="search-action search-clear" aria-label="Clear search">&#x2715;</a>
+        <?php else: ?>
+          <button type="submit" class="search-action search-btn" aria-label="Search feeds"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+        <?php endif; ?>
+      </form>
     </nav>
 
     <main id="main-content">
 
     <?php if (empty($feeds)): ?>
-      <div class="card">No subfolders found (or not readable) for the selected filter.</div>
+      <div class="card"><?php echo $query !== '' ? 'No feeds matching “' . h($query) . '”.' : 'No subfolders found (or not readable) for the selected filter.'; ?></div>
     <?php else: ?>
       <div class="grid">
         <?php foreach ($feeds as $f):
@@ -434,13 +473,13 @@
     <?php if ($totalPages > 1): ?>
     <nav class="pager" aria-label="Page navigation">
       <?php if ($page > 1): ?>
-        <a href="<?php echo h($base . '?' . http_build_query(['filter' => $filter, 'page' => $page - 1])); ?>" class="btn" aria-label="Previous page">&#x2190; Prev</a>
+        <a href="<?php echo h($base . '?' . http_build_query($pageBase + ['page' => $page - 1])); ?>" class="btn" aria-label="Previous page">&#x2190; Prev</a>
       <?php else: ?>
         <span class="btn" aria-disabled="true">&#x2190; Prev</span>
       <?php endif; ?>
-      <span class="pager-info">Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
+      <span class="pager-info"><?php if ($query !== ''): ?><span style="margin-right:6px;color:var(--accent)">&ldquo;<?php echo h($query); ?>&rdquo;</span><?php endif; ?>Page <?php echo $page; ?> of <?php echo $totalPages; ?></span>
       <?php if ($page < $totalPages): ?>
-        <a href="<?php echo h($base . '?' . http_build_query(['filter' => $filter, 'page' => $page + 1])); ?>" class="btn" aria-label="Next page">Next &#x2192;</a>
+        <a href="<?php echo h($base . '?' . http_build_query($pageBase + ['page' => $page + 1])); ?>" class="btn" aria-label="Next page">Next &#x2192;</a>
       <?php else: ?>
         <span class="btn" aria-disabled="true">Next &#x2192;</span>
       <?php endif; ?>
@@ -456,5 +495,6 @@
   </div>
 
 <script defer src="<?= h($assetBase . 'js/clipboard.js') ?>"></script>
+<script defer src="<?= h($assetBase . 'js/search.js') ?>"></script>
 </body>
 </html>

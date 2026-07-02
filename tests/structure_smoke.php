@@ -23,6 +23,7 @@ $requiredPaths = [
     'src/handlers/indexpage.php',
     'css/index.css',
     'css/show.css',
+    'js/search.js',
     'js/theme.js',
     'js/clipboard.js',
     'js/player.js',
