@@ -63,8 +63,9 @@ function send_rss(string $feed, string $feedDir, string $type = 'podcast'): void
     }
 
     // Keep the app quip visible in feed apps without duplicating it.
-    if (stripos($feedDesc, APP_QUIP) === false) {
-        $feedDesc = rtrim($feedDesc, ". \t\n\r\0\x0B") . '. ' . APP_QUIP;
+    $rssQuip = APP_NAME . ': ' . APP_QUIP;
+    if (stripos($feedDesc, APP_QUIP) === false && stripos($feedDesc, $rssQuip) === false) {
+        $feedDesc = rtrim($feedDesc, ". \t\n\r\0\x0B") . '. ' . $rssQuip;
     }
 
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -75,7 +76,7 @@ function send_rss(string $feed, string $feedDir, string $type = 'podcast'): void
     echo "    <description>" . h($feedDesc) . "</description>\n";
     echo "    <language>" . h(FEED_LANGUAGE) . "</language>\n";
     echo "    <lastBuildDate>" . gmdate(DATE_RSS, $lastBuild) . "</lastBuildDate>\n";
-    echo "    <generator>fablr " . h(APP_VERSION) . "</generator>\n";
+    echo "    <generator>" . h(APP_NAME) . " " . h(APP_VERSION) . "</generator>\n";
     echo "    <atom:link href=\"" . h($self) . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
     // Required by Apple Podcasts
     echo "    <itunes:author>" . h($name) . "</itunes:author>\n";
