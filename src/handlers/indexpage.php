@@ -9,6 +9,10 @@ function render_index_page(string $filter): void {
 
     $feeds = list_podcasts($filter);
 
+    // All feed names across every filter for the search datalist (fast — no
+    // recursive scans, just scandir of top-level directories).
+    $allFeedNames = array_map(fn($f) => $f['name'], list_podcasts('all'));
+
     // Strip feeds that have no downloaded content before pagination so each
     // page always shows exactly FEEDS_PER_PAGE items (not fewer due to skips).
     $feeds = array_values(array_filter($feeds, static function (array $f): bool {
