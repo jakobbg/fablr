@@ -58,7 +58,7 @@ function render_show_page(string $feed): void {
     $rawBack = trim((string)($_GET['return_to'] ?? ''));
     $backUrl = ($rawBack !== '' && $rawBack[0] === '/' && !str_contains($rawBack, '//') && !str_contains($rawBack, "\n") && !str_contains($rawBack, "\r"))
         ? $rawBack
-        : $base;
+        : $assetBase;  // relative app root — works even for shared/direct links
 
     // Open Library metadata (books only, when enabled).
     // Only reads the local cache — no blocking network request.

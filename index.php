@@ -23,6 +23,13 @@ if ($action === 'media') {
         exit;
     }
     $file = (string)($_GET['file'] ?? '');
+    if (!empty($_GET['dl'])) {
+        // Force browser download with the original filename.
+        $dlName = basename(str_replace(['/', '\\'], '-', $file));
+        if ($dlName !== '') {
+            header('Content-Disposition: attachment; filename="' . str_replace('"', '', $dlName) . '"');
+        }
+    }
     stream_file($feed, $feedDir, $file);
     exit;
 }
