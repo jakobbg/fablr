@@ -439,7 +439,7 @@
           $backParams = [];
           if ($filter !== 'all') $backParams['filter'] = $filter;
           if ($query !== '')     $backParams['q']      = $query;
-          $returnTo = '/' . ($backParams ? '?' . http_build_query($backParams) : '');
+          $returnTo = $assetBase . ($backParams ? '?' . http_build_query($backParams) : '');
           $showUrl  = $assetBase . 'show/' . $encodedId . '?return_to=' . rawurlencode($returnTo);
 
           $stats = podcast_stats($f['dir']);
