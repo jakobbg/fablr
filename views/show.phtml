@@ -368,7 +368,7 @@
 <div class="wrap">
 
   <div class="show-nav">
-    <a href="<?= h($backUrl) ?>" class="back">← All feeds</a>
+    <a href="<?= h($backUrl) ?>" class="back" onclick="if(history.length>1){history.back();return false}">← Go back</a>
     <a href="<?= h($assetBase) ?>" class="show-brand">phodcasts</a>
   </div>
 
