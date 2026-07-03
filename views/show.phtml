@@ -423,7 +423,9 @@
 <div class="wrap">
 
   <div class="show-nav">
-    <a href="<?= h($backUrl) ?>" class="back" id="back-link">← Go back</a>
+    <a href="<?= h($backUrl) ?>" class="back" id="back-link"
+       onclick="sessionStorage.setItem('ph-scroll', <?= h(json_encode($feed)) ?>)"
+       >← Go back</a>
     <a href="<?= h($assetBase) ?>" class="show-brand">phodcasts</a>
   </div>
 
@@ -559,7 +561,7 @@
             <th class="c">Format</th>
             <th class="r th-kbps">Bitrate</th>
             <?php if ($feedType === 'podcast'): ?><th class="r th-dt">Date</th><?php endif; ?>
-          </tr>
+            <th style="width:32px"></th>
         </thead>
         <tbody>
           <?php foreach ($mediaFiles as $idx => $f): ?>
@@ -587,7 +589,11 @@
             <?php if ($feedType === 'podcast'): ?>
               <td class="r td-dt dt"><?= $pubDate !== null ? h($pubDate) : '—' ?></td>
             <?php endif; ?>
-          </tr>
+            <td style="text-align:center;padding:6px 8px">
+              <a href="<?= h($mediaSrc . '&dl=1') ?>" download aria-label="Download <?= h($epTitle) ?>" title="Download" style="color:var(--muted);display:inline-flex;align-items:center">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18v10.17l-3.88-3.88L7 9.71 12 14.71l5-5-1.12-1.12L12 12.17V2h-2z"/></svg>
+              </a>
+            </td>
           <?php endforeach; ?>
         </tbody>
       </table>

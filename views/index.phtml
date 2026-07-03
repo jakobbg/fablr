@@ -457,7 +457,7 @@
           $badgeEmoji = $f['type'] === 'book' ? '📚' : '🎙';
           $badgeClass = $f['type'] === 'book' ? 'book' : 'podcast';
         ?>
-          <section class="card" aria-label="<?php echo h($f['name']); ?>">
+          <section class="card" aria-label="<?php echo h($f['name']); ?>" data-feed-id="<?php echo h($f['id']); ?>">
             <div class="cover-wrap">
               <?php if ($coverUrl !== null): ?>
                 <img class="cover" src="<?php echo h($coverUrl); ?>" alt="Cover art for <?php echo h($f['name']); ?>" loading="lazy" />
@@ -569,6 +569,20 @@ function copyFeed(btn, url) {
     a.addEventListener('click', function () {
       sessionStorage.setItem('ph-back', window.location.href);
     });
+  });
+}());
+// Scroll to the previously viewed show card when returning from a show page.
+(function () {
+  var feed = sessionStorage.getItem('ph-scroll');
+  if (!feed) return;
+  sessionStorage.removeItem('ph-scroll');
+  var card = document.querySelector('[data-feed-id=' + JSON.stringify(feed) + ']');
+  if (!card) return;
+  requestAnimationFrame(function () {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    card.style.outline = '2px solid var(--accent)';
+    card.style.outlineOffset = '3px';
+    setTimeout(function () { card.style.outline = ''; card.style.outlineOffset = ''; }, 2000);
   });
 }());
 </script>
