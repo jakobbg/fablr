@@ -498,12 +498,22 @@
     // Show Add button whenever there is no user-written notes.md and no actual
     // description yet — regardless of loading/meta state.
     $canAdd      = !$hasDesc && $notes === null;
+    $canEdit     = ($notes !== null);
     $saveUrl     = $base . '?' . http_build_query(['action' => 'save_notes', 'feed' => $feed]);
   ?>
   <?php if ($hasDesc || $hasMetaInfo || $willFetch || $canAdd): ?>
   <div class="desc-card">
-    <h2 id="desc-heading"><?= $notes !== null ? 'Notes' : ($hasDesc ? 'About' : 'Description') ?></h2>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+      <h2 id="desc-heading" style="margin:0"><?= $notes !== null ? 'Notes' : ($hasDesc ? 'About' : 'Description') ?></h2>
+      <?php if ($canEdit): ?>
+        <button class="add-desc-toggle" id="add-desc-btn"
+          style="padding:3px 10px;font-size:12px;width:auto;border-style:solid"
+          onclick="document.getElementById('add-desc-form').style.display='block';document.getElementById('add-desc-view').style.display='none';this.style.display='none'"
+          >✏ Edit</button>
+      <?php endif; ?>
+    </div>
     <div class="desc-body">
+      <div id="add-desc-view">
       <?php if ($notes !== null): ?>
         <?= $notes ?>
       <?php elseif ($meta !== null && !empty($meta['description'])): ?>
@@ -513,14 +523,17 @@
       <?php elseif ($willFetch): ?>
         <p id="desc-loading" style="color:var(--muted);font-size:14px">Loading description…</p>
       <?php endif; ?>
-      <?php if ($canAdd): ?>
-        <div id="add-desc-wrap" <?= ($willFetch || $hasMetaInfo) ? 'style="margin-top:12px"' : '' ?>>
+      </div>
+      <?php if ($canAdd || $canEdit): ?>
+        <div id="add-desc-wrap" <?= (!$canEdit && ($willFetch || $hasMetaInfo)) ? 'style="margin-top:12px"' : '' ?>>
+          <?php if ($canAdd && !$canEdit): ?>
           <button class="add-desc-toggle" id="add-desc-btn" onclick="document.getElementById('add-desc-form').style.display='block';this.style.display='none'">+ Add description</button>
+          <?php endif; ?>
           <div id="add-desc-form" style="display:none">
-            <textarea class="notes-textarea" id="add-desc-ta" rows="6" placeholder="Paste or type Markdown or plain text…"></textarea>
+            <textarea class="notes-textarea" id="add-desc-ta" rows="6" placeholder="Paste or type Markdown or plain text…"><?php if ($canEdit && isset($notesRaw)): ?><?= h($notesRaw) ?><?php endif; ?></textarea>
             <div class="add-desc-actions">
               <button class="btn primary" onclick="saveNotes()">Save</button>
-              <button class="btn" onclick="document.getElementById('add-desc-form').style.display='none';document.getElementById('add-desc-btn').style.display=''">Cancel</button>
+              <button class="btn" onclick="document.getElementById('add-desc-form').style.display='none';document.getElementById('add-desc-view').style.display='';document.getElementById('add-desc-btn') && (document.getElementById('add-desc-btn').style.display='')">Cancel</button>
             </div>
             <p class="add-desc-error" id="add-desc-err" style="display:none"></p>
           </div>
@@ -633,7 +646,7 @@
   }
 }());
 
-<?php if (isset($canAdd) && $canAdd): ?>
+<?php if (isset($canAdd) && ($canAdd || (isset($canEdit) && $canEdit))): ?>
 function saveNotes() {
   var ta  = document.getElementById('add-desc-ta');
   var err = document.getElementById('add-desc-err');

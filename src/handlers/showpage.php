@@ -79,6 +79,7 @@ function render_show_page(string $feed): void {
     // Optional notes: prefer manual notes.md in the feed directory;
     // fall back to web-saved notes in cache/notes/.
     $notes     = null;
+    $notesRaw  = null;
     $notesPath = $feedDir . DIRECTORY_SEPARATOR . 'notes.md';
     if (!is_file($notesPath) || !is_readable($notesPath)) {
         $notesPath = __DIR__ . '/../../cache/notes/' . sha1($feed) . '.md';
@@ -86,7 +87,8 @@ function render_show_page(string $feed): void {
     if (is_file($notesPath) && is_readable($notesPath)) {
         $raw = @file_get_contents($notesPath);
         if ($raw !== false) {
-            $notes = render_markdown($raw);
+            $notesRaw = $raw;
+            $notes    = render_markdown($raw);
         }
     }
 
