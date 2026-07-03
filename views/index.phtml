@@ -454,7 +454,13 @@
           $encodedId    = implode('/', array_map('rawurlencode', explode('/', $f['id'])));
           $cleanFeedUrl = $assetBase . 'feed/' . $encodedId;
           $podcastUrl   = preg_replace('#^https?://#i', 'podcast://', $cleanFeedUrl);
-          $showUrl      = $assetBase . 'show/' . $encodedId;
+          // Encode the current page state so the show page can return here.
+          $backParams = [];
+          if ($filter !== 'all') $backParams['filter'] = $filter;
+          if ($query !== '')     $backParams['q']      = $query;
+          if ($page > 1)         $backParams['page']   = $page;
+          $returnTo = '/' . ($backParams ? '?' . http_build_query($backParams) : '');
+          $showUrl  = $assetBase . 'show/' . $encodedId . '?return_to=' . rawurlencode($returnTo);
 
           $stats = podcast_stats($f['dir']);
           $episodeCount = (int)$stats['count'];
