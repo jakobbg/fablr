@@ -1,50 +1,68 @@
-/* js/theme.js — manual dark/light/auto theme override.
+/* js/theme.js — manual light/dark theme toggle.
  *
- * Persists preference in localStorage as 'light' | 'dark' | (absent = auto).
- * A tiny inline script in <head> reads this before CSS loads to prevent
- * a flash of the wrong theme (FOCT).
+ * Persists preference in localStorage as 'light' | 'dark'.
+ * A tiny inline script in <head> reads this before CSS loads to reduce theme
+ * flash during navigation.
  */
 (function () {
-  var ICONS  = { light: '☀', dark: '🌙', auto: '⊙' };
-  var LABELS = { light: 'Switch to dark theme', dark: 'Switch to auto theme', auto: 'Switch to light theme' };
+  var ICONS  = { light: '☀', dark: '🌙' };
+  var LABELS = { light: 'Switch to dark theme', dark: 'Switch to light theme' };
 
-  function getTheme() {
-    return localStorage.getItem('theme'); // 'light' | 'dark' | null
+  function getStoredTheme() {
+    try {
+      var t = localStorage.getItem('theme');
+      return (t === 'light' || t === 'dark') ? t : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function setStoredTheme(t) {
+    try {
+      localStorage.setItem('theme', t);
+    } catch (_) {
+      // Ignore storage failures (private mode, blocked storage, etc.)
+    }
+  }
+
+  function currentTheme() {
+    return getStoredTheme() || 'dark';
   }
 
   function applyTheme(t) {
-    if (t) {
-      document.documentElement.setAttribute('data-theme', t);
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
-  }
-
-  function cycleTheme() {
-    var cur  = getTheme();
-    var next = cur === null ? 'light' : cur === 'light' ? 'dark' : null;
-    if (next) {
-      localStorage.setItem('theme', next);
-    } else {
-      localStorage.removeItem('theme');
-    }
-    applyTheme(next);
-    updateBtn();
+    document.documentElement.setAttribute('data-theme', t);
   }
 
   function updateBtn() {
     var btn = document.getElementById('theme-toggle');
     if (!btn) return;
-    var t = getTheme();
-    var key = t === null ? 'auto' : t;
-    btn.textContent = ICONS[key];
-    btn.setAttribute('aria-label', LABELS[key]);
+    var t = currentTheme();
+    btn.textContent = ICONS[t];
+    btn.setAttribute('aria-label', LABELS[t]);
+    btn.setAttribute('title', LABELS[t]);
   }
 
-  // Attach click handler once DOM is ready.
-  document.addEventListener('DOMContentLoaded', function () {
-    var btn = document.getElementById('theme-toggle');
-    if (btn) btn.addEventListener('click', cycleTheme);
+  function toggleTheme() {
+    var next = currentTheme() === 'light' ? 'dark' : 'light';
+    setStoredTheme(next);
+    applyTheme(next);
     updateBtn();
-  });
+  }
+
+  function init() {
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    if (!btn.dataset.boundThemeToggle) {
+      btn.addEventListener('click', toggleTheme);
+      btn.dataset.boundThemeToggle = '1';
+    }
+    applyTheme(currentTheme());
+    updateBtn();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
 }());
