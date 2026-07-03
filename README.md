@@ -6,7 +6,7 @@
 
 A lightweight PHP server that turns a folder of audio files into podcast-app-compatible RSS feeds. Point it at a directory, and every subfolder becomes a subscribable podcast feed — no database, no dependencies, and minimal configuration.
 
-Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a NAS and want to re-subscribe to them in a standard podcast app (Apple Podcasts, Overcast, Pocket Casts, etc.).
+Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a NAS and want to re-subscribe to them in a standard podcast app (Overcast, Pocket Casts, Apple Podcasts, etc.).
 
 ## What it does
 
@@ -20,7 +20,9 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 - **Cleans up episode titles** automatically — raw filenames are transformed into readable labels before they appear in your podcast app (see [Episode title cleanup](#episode-title-cleanup))
 - **Audiobook metadata enrichment** *(opt-in)* — fetches book descriptions from Open Library and uses them as feed summaries in your podcast app (see [Audiobook metadata](#audiobook-metadata))
 - **Rich link previews** — Open Graph and Twitter Card meta tags make shared links look great in iMessage, Slack, Discord, etc. Includes an `apple-touch-icon` for adding the page to the iOS home screen
-- **Subscribe in Apple Podcasts** — one-click button uses a clean path URL (`podcast://host/feed/…`) with no query string, so it works reliably in Chrome and Safari alike
+- **One-click Subscribe action** — a clean path URL (`podcast://host/feed/…`) with no query string opens your podcast app more reliably in browsers like Chrome and Safari
+- **Unified description editing** — show pages always expose an editable **Description** section (podcasts and audiobooks), regardless of whether the current text came from local notes, Open Library, or fallback copy
+- **Subtle brand footer metadata** — both main and show pages include app name + quip + version + short commit id in a low-contrast footer line
 - **Accessible** — semantic landmarks, skip link, visible focus rings, reduced-motion support, emoji hidden from screen readers, `<time>` elements for dates (see [Accessibility](#accessibility))
 
 ## Requirements
@@ -31,15 +33,17 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 ## Setup
 
 1. Copy the full project (`index.php`, `.htaccess`, `config/`, `src/`, `views/`, `cache/`, and image assets) to your web root (or virtual host directory).
-2. Edit the constants in `config/constants.php`:
+2. Edit user settings in `config/config.json`:
 
 ```php
-const PODCAST_ROOT        = '/mnt/torrents/Podcasts';
-const PODCASTS_SUBDIR     = 'Podcasts';
-const BOOKS_SUBDIR        = 'Books';
-const FEED_LANGUAGE       = 'no';
-const TRUSTED_PROXY_CIDRS = ['127.0.0.1/32', '::1/128'];
-const FETCH_BOOK_METADATA = false;
+{
+   "PODCAST_ROOT": "/mnt/torrents/Podcasts",
+   "PODCASTS_SUBDIR": "Podcasts",
+   "BOOKS_SUBDIR": "Books",
+   "FEED_LANGUAGE": "no",
+   "TRUSTED_PROXY_CIDRS": ["127.0.0.1/32", "::1/128"],
+   "FETCH_BOOK_METADATA": false
+}
 ```
 
 `TRUSTED_PROXY_CIDRS` controls when `X-Forwarded-Proto` and `X-Forwarded-Host` are trusted. Only requests from those proxy IP ranges may set the public scheme/host used in generated links and RSS enclosure URLs. Add your reverse proxy IP/CIDR to this list when running behind a proxy.
@@ -62,7 +66,7 @@ PODCAST_ROOT/
 ```
 
 4. Place the provided image files (`logo.png`, `og.png`, `apple-touch-icon.png`,
-   `favicon.png`) in the same directory as `index.php` so that link previews
+   `apple-touch-icon-precomposed.png`, `favicon.png`) in the same directory as `index.php` so that link previews
    and browser icons work out of the box. The web server serves them directly.
 
 Each immediate subfolder becomes one feed, accessible at `?feed=Podcasts/My+Show`
@@ -79,9 +83,9 @@ Each card on the index page has three buttons:
 |---|---|
 | **Details** | Opens the feed detail page — full episode list, per-track metadata, and built-in browser player |
 | **Copy RSS** | Copies the raw RSS URL to the clipboard — paste it into any podcast app's "Add by URL" dialog |
-| **Podcasts** | Opens Apple Podcasts and subscribes immediately (works in Chrome and Safari on macOS and iOS) |
+| **Subscribe** | Opens your podcast app via `podcast://` and subscribes immediately (works reliably in Chrome and Safari on macOS and iOS) |
 
-The Apple Podcasts link uses the `podcast://` URL scheme with a clean path (no query string). An Apache `mod_rewrite` rule maps `/feed/Show+Name` to the PHP RSS handler, which lets the link work reliably across all browsers. Without this, browsers sometimes strip query strings when handing off custom URL schemes to native apps.
+The Subscribe link uses the `podcast://` URL scheme with a clean path (no query string). An Apache `mod_rewrite` rule maps `/feed/Show+Name` to the PHP RSS handler, which lets the link work reliably across all browsers. Without this, browsers sometimes strip query strings when handing off custom URL schemes to native apps.
 
 ## Feed detail page
 
@@ -89,17 +93,17 @@ Each feed has a detail page at `show/Podcasts/My+Show` (or `?show=Podcasts/My+Sh
 
 - Cover art, type badge, and title (with author/year from Open Library when metadata is enabled)
 - Stats: episode count, total duration, total file size, newest episode date
-- RSS and Apple Podcasts action buttons
-- **Description** — rendered from `notes.md` if the file exists in the feed directory, otherwise falls back to the Open Library summary
+- RSS and Subscribe action buttons
+- **Description** — always user-editable in-page for both podcasts and audiobooks; seeded from local `notes.md`/cached notes when present, otherwise falls back to Open Library metadata (when enabled)
 - **Episode table** — every track listed with cleaned title, duration, file size, format badge, estimated bitrate, and date
 - **Built-in player** — a sticky bar slides up from the bottom when you click any episode's play button; supports seek, pause/resume, and close; the active row shows a pause icon while playing. Toggle **⇥ Auto** in the player bar to enable auto-advance: each episode automatically plays the next one when it ends, so you can listen to a whole show without touching the screen
 - **Rich link previews** — the show page includes Open Graph and Twitter Card meta tags so sharing a show URL in iMessage, X, Facebook, Slack, Discord, etc. shows the show's cover art, title, and a summary (episode count, total duration, author for audiobooks). Falls back to the site `og.png` when no cover image is present
 - **Cover-art colour theming** — when a cover image is present the page automatically adapts its colour scheme to match: the dominant hue is sampled from the artwork via the Canvas API and applied across backgrounds, gradient buttons, badges, the sticky player, and progress bar, making each show visually distinct
 - **Generated cover art placeholder** — shows without a cover image get an inline SVG placeholder on both the index and show pages: the full show name is rendered as wrapped text (up to 3 lines, font-size scaled to fit) over a vivid radial gradient. Hue and gradient stop are derived deterministically from the show name via `crc32`, producing a wide, evenly distributed spread of colours — each show gets a unique but always-consistent appearance
 
-**Adding a custom description**
+**Adding or editing description**
 
-Drop a `notes.md` file into any feed folder and it will appear on the detail page rendered as Markdown. Supports headings, bold/italic, code, lists, blockquotes, and links.
+Use the **Edit description** control on the show page to update text directly. You can also drop a `notes.md` file into a feed folder. Markdown supports headings, bold/italic, code, lists, blockquotes, and links.
 
 ## Smoke tests
 
@@ -115,7 +119,7 @@ Alternative (if you do not want to use `make`):
 sh tests/run_smoke.sh
 ```
 
-They validate high-risk logic such as episode title normalization, feed path safety checks, media stream/range/ETag behavior, reverse-proxy URL generation, audiobook metadata parsing, and required project structure.
+They validate high-risk logic such as episode title normalization, feed path safety checks, media stream/range/ETag behavior, reverse-proxy URL generation, audiobook metadata parsing, RSS description metadata propagation, and required project structure.
 
 ## Audiobook metadata
 
