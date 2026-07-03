@@ -76,9 +76,13 @@ function render_show_page(string $feed): void {
         // cached['found'] === false: Open Library returned no match, don't retry
     }
 
-    // Optional notes.md in the feed directory.
-    $notes    = null;
+    // Optional notes: prefer manual notes.md in the feed directory;
+    // fall back to web-saved notes in cache/notes/.
+    $notes     = null;
     $notesPath = $feedDir . DIRECTORY_SEPARATOR . 'notes.md';
+    if (!is_file($notesPath) || !is_readable($notesPath)) {
+        $notesPath = __DIR__ . '/../../cache/notes/' . sha1($feed) . '.md';
+    }
     if (is_file($notesPath) && is_readable($notesPath)) {
         $raw = @file_get_contents($notesPath);
         if ($raw !== false) {
