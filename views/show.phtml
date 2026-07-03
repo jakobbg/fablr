@@ -474,10 +474,11 @@
   </div>
 
   <?php
-    $hasDesc  = $notes !== null || ($meta !== null && !empty($meta['description']));
-    $willFetch = isset($metaFetchUrl) && $metaFetchUrl !== null && $notes === null;
+    $hasDesc     = $notes !== null || ($meta !== null && !empty($meta['description']));
+    $hasMetaInfo = $meta !== null && !empty($meta['found']);
+    $willFetch   = isset($metaFetchUrl) && $metaFetchUrl !== null;
   ?>
-  <?php if ($hasDesc || $willFetch): ?>
+  <?php if ($hasDesc || $hasMetaInfo || $willFetch): ?>
   <div class="desc-card">
     <h2 id="desc-heading"><?= $notes !== null ? 'Notes' : 'About' ?></h2>
     <div class="desc-body">
@@ -485,6 +486,8 @@
         <?= $notes ?>
       <?php elseif ($meta !== null && !empty($meta['description'])): ?>
         <p><?= h((string)$meta['description']) ?></p>
+      <?php elseif ($meta !== null && !empty($meta['found'])): ?>
+        <p>Metadata was found on Open Library, but no description is available for this title.</p>
       <?php elseif ($willFetch): ?>
         <p id="desc-loading" style="color:var(--muted);font-size:14px">Loading description…</p>
       <?php endif; ?>
@@ -640,7 +643,11 @@
             var heading = document.getElementById('desc-heading');
             if (heading) heading.textContent = 'About';
           } else {
-            loader.closest('.desc-card').style.display = 'none';
+            var p3 = document.createElement('p');
+            p3.textContent = 'Metadata was found on Open Library, but no description is available for this title.';
+            loader.replaceWith(p3);
+            var heading2 = document.getElementById('desc-heading');
+            if (heading2) heading2.textContent = 'About';
           }
         }
       } else {
