@@ -50,8 +50,15 @@ function render_show_page(string $feed): void {
 
     $feedType = str_starts_with($feed, BOOKS_SUBDIR . '/') ? 'book' : 'podcast';
     $name     = basename($feed);
-    $base     = base_url();
+    $base      = base_url();
     $assetBase = substr($base, 0, strrpos($base, '/') + 1);
+
+    // Resolve the back-navigation URL from the ?return_to= parameter.
+    // Validate strictly: must be a relative path (starts with /, no // or newlines).
+    $rawBack = trim((string)($_GET['return_to'] ?? ''));
+    $backUrl = ($rawBack !== '' && $rawBack[0] === '/' && !str_contains($rawBack, '//') && !str_contains($rawBack, "\n") && !str_contains($rawBack, "\r"))
+        ? $rawBack
+        : $base;
 
     // Open Library metadata (books only, when enabled).
     // Only reads the local cache — no blocking network request.
