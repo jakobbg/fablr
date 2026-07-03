@@ -256,6 +256,12 @@
     font-size: 14px;
   }
   .site-footer p { margin: 0; }
+  .site-footer .brand-note {
+    margin-top: 6px;
+    font-size: 12px;
+    letter-spacing: .2px;
+    opacity: .78;
+  }
 
   .divider {
     height: 1px;
@@ -499,6 +505,7 @@
     <div class="divider"></div>
     <footer class="site-footer">
       <p>Tap <strong>Subscribe</strong> to open your app directly. Use the <strong>clipboard icon</strong> on each cover to copy the RSS URL into any other podcast app.</p>
+      <p class="brand-note"><?= h(APP_NAME) ?> · <?= h(APP_QUIP) ?> · <?= h(APP_VERSION) ?><?php if ($shortHash !== ''): ?> · <?= h($shortHash) ?><?php endif; ?></p>
     </footer>
   </div>
 

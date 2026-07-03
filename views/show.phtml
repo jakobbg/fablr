@@ -9,6 +9,8 @@
   $encodedFeed   = implode('/', array_map('rawurlencode', explode('/', $feed)));
   $showPageUrl   = $assetBase . 'show/' . $encodedFeed;
   $ogImageUrl    = $coverUrl ?? $assetBase . 'og.png';
+  $commitHash    = app_commit_hash();
+  $shortHash     = $commitHash !== '' ? substr($commitHash, 0, 7) : '';
   $typeLabel     = $feedType === 'book' ? 'Audiobook' : 'Podcast';
   $ogParts       = [];
   if ($feedType === 'book' && $meta !== null && !empty($meta['author'])) {
@@ -416,6 +418,26 @@
   @media (prefers-reduced-motion: reduce) {
     .player-bar { transition: none; }
   }
+
+  .divider {
+    height: 1px;
+    margin: 14px 0 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  }
+  .site-footer {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: .2px;
+    text-align: center;
+    opacity: .78;
+  }
+  .site-footer p { margin: 0; }
+
+  @media (prefers-color-scheme: light) {
+    html:not([data-theme="dark"]) .divider { background: linear-gradient(90deg, transparent, rgba(15,23,42,.18), transparent); }
+  }
+  html[data-theme="light"] .divider { background: linear-gradient(90deg, transparent, rgba(15,23,42,.18), transparent); }
   </style>
   <script defer src="<?= h($assetBase . 'js/theme.js') ?>"></script>
 </head>
@@ -598,6 +620,11 @@
       </table>
     </div>
   </div>
+
+  <div class="divider"></div>
+  <footer class="site-footer">
+    <p><?= h(APP_NAME) ?> · <?= h(APP_QUIP) ?> · <?= h(APP_VERSION) ?><?php if ($shortHash !== ''): ?> · <?= h($shortHash) ?><?php endif; ?></p>
+  </footer>
 
 </div>
 
