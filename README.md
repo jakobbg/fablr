@@ -11,7 +11,7 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 ## What it does
 
 - Scans two directories — one for **podcasts**, one for **audiobooks** — and generates an RSS 2.0 + iTunes feed per subfolder
-- Serves a web index listing all feeds with cover art, episode count, and newest-episode age
+- Serves a web index listing all feeds with cover art, episode count, and a date badge — newest-episode age for podcasts, added-to-library age for audiobooks (audiobooks are always added as one complete compilation, so a per-track "newest" date wouldn't be meaningful)
 - **Feed detail page** — click *Details* on any card to open a page showing the full episode list with file format, size, duration, and bitrate per track, plus a built-in audio player so you can play any episode directly in the browser
 - Streams audio files with HTTP range-request support (seekable playback, resumable downloads)
 - **Podcasts** sort newest-first; **audiobooks** sort ascending by filename (chapter 1 first) — enforced via `pubDate` so podcast apps respect it regardless of their default sort
@@ -95,7 +95,7 @@ The Subscribe link uses the `podcast://` URL scheme with a clean path (no query 
 Each feed has a detail page at `show/Podcasts/My+Show` (or `?show=Podcasts/My+Show`). It shows:
 
 - Cover art, type badge, and title (with author/year from Open Library when metadata is enabled)
-- Stats: episode count, total duration, total file size, newest episode date
+- Stats: episode count, total duration, total file size, and a date — newest episode date for podcasts, added-to-library date for audiobooks
 - RSS and Subscribe action buttons
 - **Description** — always user-editable in-page for both podcasts and audiobooks; seeded from local `notes.md`/cached notes when present, otherwise falls back to Open Library metadata (when enabled)
 - **Episode table** — every track listed with cleaned title, duration, file size, format badge, estimated bitrate, and date
@@ -107,6 +107,10 @@ Each feed has a detail page at `show/Podcasts/My+Show` (or `?show=Podcasts/My+Sh
 **Adding or editing description**
 
 Use the **Edit description** control on the show page to update text directly. You can also drop a `notes.md` file into a feed folder. Markdown supports headings, bold/italic, code, lists, blockquotes, and links.
+
+**Stats caching**
+
+Episode count, total size/duration, cover art, and the newest/added date shown on the index and show pages are cached in `cache/metadata/`. Opening either page triggers a background refresh of that cache so it stays current without slowing down the initial render — but a real rescan of the feed folder (which can be slow on a NAS/network share) only happens at most once every 30 minutes per feed (`CACHE_MIN_REFRESH_INTERVAL` in `config/constants.php`); more frequent page loads simply reuse the existing cache.
 
 ## Smoke tests
 
@@ -234,10 +238,14 @@ The web index is built to work well for keyboard and screen-reader users:
 - **Semantic landmarks** — `<header>`, `<nav>`, `<main>`, and `<footer>` are used correctly so assistive technology can navigate by region
 - **Heading structure** — each podcast/audiobook card contains an `<h2>` heading, making it possible to navigate between shows with a screen reader's heading shortcut
 - **Emoji** — all decorative emoji (🎙, 📚) are wrapped in `aria-hidden="true"` so screen readers announce the text label only, not the emoji description
-- **Dates** — "Newest: 3 days ago" uses a `<time datetime="YYYY-MM-DD">` element so the machine-readable date is available to assistive technology
+- **Dates** — "Newest: 3 days ago" (podcasts) / "Added: 3 days ago" (audiobooks) uses a `<time datetime="YYYY-MM-DD">` element so the machine-readable date is available to assistive technology
 - **Focus rings** — `:focus-visible` outlines on all interactive elements (links, buttons, filter tabs); `.btn.primary` uses a white outline so it is visible against the gradient background
 - **Reduced motion** — `@media (prefers-reduced-motion: reduce)` disables hover transitions and the button lift effect for users with the OS "Reduce Motion" setting enabled
 - **Copy RSS feedback** — when the clipboard write succeeds, the button's `aria-label` is updated to "Copied to clipboard" for the 2-second confirmation window, then restored
+
+## Intended use
+
+fablr is built for personal, home-network use only. It is meant to let you re-subscribe, in a standard podcast app, to podcasts and audiobooks that **you already own or otherwise have the legal right to listen to** (e.g. content you recorded, purchased, or downloaded legitimately). It is not intended to be exposed on the public internet, run as a multi-user or commercial service, or used to distribute or share content you do not have the rights to. Use it responsibly and in accordance with the copyright laws applicable to you.
 
 ## License
 

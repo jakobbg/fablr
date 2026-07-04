@@ -9,7 +9,7 @@ declare(strict_types=1);
  * Response shape:
  *   {
  *     "found": true,
- *     "stats": { "count": 10, "newest_ts": 123, "has_content": true },
+ *     "stats": { "count": 10, "newest_ts": 123, "added_ts": 456, "has_content": true },
  *     "covers": [ "http://.../img1.jpg", ... ],
  *     "title": "...", "author": "...", "year": 2001, "description": "..."
  *   }
@@ -43,9 +43,13 @@ function send_metadata_json(string $feed): void {
         'covers' => [],
     ];
 
-    if ($response['stats'] && isset($response['stats']['newest_ts'])) {
+    if ($response['stats'] && !empty($response['stats']['newest_ts'])) {
         $response['stats']['newest_human'] = human_age((int)$response['stats']['newest_ts']);
         $response['stats']['newest_iso']   = gmdate('Y-m-d', (int)$response['stats']['newest_ts']);
+    }
+    if ($response['stats'] && !empty($response['stats']['added_ts'])) {
+        $response['stats']['added_human'] = human_age((int)$response['stats']['added_ts']);
+        $response['stats']['added_iso']   = gmdate('Y-m-d', (int)$response['stats']['added_ts']);
     }
 
     if (isset($meta['covers']) && is_array($meta['covers'])) {

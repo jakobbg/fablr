@@ -8,6 +8,13 @@ const APP_VERSION = 'v1.6.0';
 const REPO_URL    = 'https://github.com/jakobbg/fablr';
 const APP_QUIP    = 'Fables on demand — Your audio, your schedule';
 
+// Minimum time (in seconds) that must pass since a feed's metadata cache was
+// last (re)built before another refresh from disk is allowed. This protects
+// slow network-share deployments from being re-scanned on every single page
+// load (the index/show pages trigger a background "refresh=1" request each
+// time they're opened).
+const CACHE_MIN_REFRESH_INTERVAL = 1800; // 30 minutes
+
 // ── Load user settings from config/config.json ───────────────────────────────
 (static function (): void {
     $path = __DIR__ . '/config.json';

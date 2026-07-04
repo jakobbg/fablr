@@ -70,6 +70,7 @@ function render_show_page(string $feed): void {
     $totalSize     = $stats['total_size'] ?? 0;
     $totalDuration = $stats['total_duration'] ?? null;
     $newestTs      = $stats['newest_ts'] ?? null;
+    $addedTs       = $stats['added_ts'] ?? null;
 
     // Cover images (largest image first).
     $coverImgPaths = $feedMeta['covers'] ?? [];

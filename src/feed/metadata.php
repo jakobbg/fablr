@@ -156,6 +156,17 @@ function get_feed_metadata(string $feedId, string $feedDir, bool $forceRefresh =
         return $cached;
     }
 
+    // Even when a refresh is requested, never rescan disk more than once
+    // every CACHE_MIN_REFRESH_INTERVAL seconds — index/show pages trigger a
+    // background refresh on every page load, and without this guard that
+    // would hit (potentially slow) feed storage on every single visit.
+    if ($forceRefresh && $cached !== null && isset($cached['stats'], $cached['stats_fetched_at'])) {
+        $age = time() - (int)$cached['stats_fetched_at'];
+        if ($age >= 0 && $age < CACHE_MIN_REFRESH_INTERVAL) {
+            return $cached;
+        }
+    }
+
     $feedType = str_starts_with($feedId, BOOKS_SUBDIR . '/') ? 'book' : 'podcast';
     $mediaFiles = find_media_files($feedDir, $feedType);
 
@@ -180,15 +191,31 @@ function get_feed_metadata(string $feedId, string $feedDir, bool $forceRefresh =
     $totalSize     = (int)array_sum(array_column($mediaFiles, 'size'));
     $durations     = array_filter(array_column($mediaFiles, 'duration'), fn($d) => $d !== null);
     $totalDuration = !empty($durations) ? (float)array_sum($durations) : null;
-    $newestTs      = null;
-    $sortTs        = array_column($mediaFiles, 'sort_ts');
+
+    // 'newest_ts' is based on sort_ts (pub date, real or synthetic) and is
+    // meaningful for podcasts, where episodes trickle in over time.
+    $newestTs = null;
+    $sortTs   = array_column($mediaFiles, 'sort_ts');
     if (!empty($sortTs)) {
         $newestTs = (int)max($sortTs);
+    }
+
+    // 'added_ts' is based on the actual filesystem mtime, never on the
+    // synthetic per-track pub dates that find_media_files() assigns to
+    // dateless filenames (which are anchored to year 2000 and would
+    // otherwise report a wildly wrong "N years ago" age). Audiobooks are
+    // typically copied onto disk as one single compilation, so this is the
+    // only date that is meaningful for them.
+    $addedTs   = null;
+    $mtimeList = array_filter(array_column($mediaFiles, 'mtime'), fn($t) => $t > 0);
+    if (!empty($mtimeList)) {
+        $addedTs = (int)max($mtimeList);
     }
 
     $stats = [
         'count'          => count($mediaFiles),
         'newest_ts'      => $newestTs,
+        'added_ts'       => $addedTs,
         'has_content'    => count($mediaFiles) > 0,
         'total_size'     => $totalSize,
         'total_duration' => $totalDuration,

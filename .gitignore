@@ -9,3 +9,6 @@ cache/covers/
 
 # Local IDE metadata.
 .idea/
+
+# macOS filesystem metadata.
+.DS_Store

@@ -509,6 +509,11 @@
           <span class="stat-val" style="font-size:14px"><?= h(human_age($newestTs) ?? '—') ?></span>
           <span class="stat-lbl">Newest</span>
         </div>
+        <?php elseif ($feedType === 'book' && $addedTs !== null): ?>
+        <div class="stat">
+          <span class="stat-val" style="font-size:14px"><?= h(human_age($addedTs) ?? '—') ?></span>
+          <span class="stat-lbl">Added</span>
+        </div>
         <?php endif; ?>
       </div>
 

@@ -489,9 +489,15 @@
           $stats = ($meta !== null && isset($meta['stats'])) ? $meta['stats'] : null;
 
           $episodeCount = $stats !== null ? (int)$stats['count'] : 0;
-          $newestTs    = $stats !== null && !empty($stats['newest_ts']) ? (int)$stats['newest_ts'] : null;
-          $newestIso   = $newestTs !== null ? gmdate('Y-m-d', $newestTs) : null;
-          $newestHuman = $newestTs !== null ? human_age($newestTs) : null;
+          // Books are always added to disk as one complete compilation, so a
+          // "newest" per-track date (derived from synthetic, sort-only pub
+          // dates) is meaningless and can show a wildly wrong age. Use the
+          // real filesystem "added" date for books instead.
+          $dateTsKey   = $f['type'] === 'book' ? 'added_ts' : 'newest_ts';
+          $dateLabel   = $f['type'] === 'book' ? 'Added' : 'Newest';
+          $dateTs      = $stats !== null && !empty($stats[$dateTsKey]) ? (int)$stats[$dateTsKey] : null;
+          $dateIso     = $dateTs !== null ? gmdate('Y-m-d', $dateTs) : null;
+          $dateHuman   = $dateTs !== null ? human_age($dateTs) : null;
 
           $coverUrl = null;
           if ($meta !== null && isset($meta['covers'][0])) {
@@ -501,7 +507,7 @@
           $badgeEmoji = $f['type'] === 'book' ? '📚' : '🎙';
           $badgeClass = $f['type'] === 'book' ? 'book' : 'podcast';
         ?>
-          <section class="card" aria-label="<?php echo h($f['name']); ?>" data-feed-id="<?php echo h($f['id']); ?>">
+          <section class="card" aria-label="<?php echo h($f['name']); ?>" data-feed-id="<?php echo h($f['id']); ?>" data-feed-type="<?php echo h($f['type']); ?>">
             <div class="cover-wrap">
               <a href="<?php echo h($showUrl); ?>" aria-label="Open details for <?php echo h($f['name']); ?>">
                 <?php if ($coverUrl !== null): ?>
@@ -515,7 +521,7 @@
             <span class="type-badge <?php echo $badgeClass; ?>"><span aria-hidden="true"><?php echo $badgeEmoji; ?></span> <?php echo h($badgeLabel); ?></span>
             <h2 class="pod-title"><?php echo h($f['name']); ?></h2>
             <div class="meta">
-              <?php echo (int)$episodeCount; ?> <?php echo $episodeCount === 1 ? 'episode' : 'episodes'; ?><?php if ($newestHuman !== null): ?> &middot; Newest: <time datetime="<?php echo h((string)$newestIso); ?>"><?php echo h($newestHuman); ?></time><?php endif; ?>
+              <?php echo (int)$episodeCount; ?> <?php echo $episodeCount === 1 ? 'episode' : 'episodes'; ?><?php if ($dateHuman !== null): ?> &middot; <?php echo h($dateLabel); ?>: <time datetime="<?php echo h((string)$dateIso); ?>"><?php echo h($dateHuman); ?></time><?php endif; ?>
             </div>
             <div class="actions">
               <a href="<?php echo h($showUrl); ?>" class="btn" aria-label="View episodes for <?php echo h($f['name']); ?>">Details</a>
@@ -644,6 +650,7 @@ function copyFeed(btn, url) {
     if (idx >= cards.length) return;
     var card = cards[idx++];
     var feedId = card.dataset.feedId;
+    var isBook = card.dataset.feedType === 'book';
     var url = '<?= $appPath ?>?action=meta&feed=' + encodeURIComponent(feedId) + '&refresh=1';
 
     fetch(url)
@@ -651,14 +658,18 @@ function copyFeed(btn, url) {
       .then(function(d) {
         if (!d.stats) return;
 
-        // Update episode count and newest date
+        // Update episode count and date info. Books use the "added" date
+        // (real filesystem timestamp) since they're always added as one
+        // compilation; podcasts use the "newest" episode date.
         var metaDiv = card.querySelector('.meta');
         if (metaDiv) {
            var count = d.stats.count || 0;
-           var newestStr = d.stats.newest_human;
+           var dateLabel = isBook ? 'Added' : 'Newest';
+           var dateStr = isBook ? d.stats.added_human : d.stats.newest_human;
+           var dateIso = isBook ? d.stats.added_iso : d.stats.newest_iso;
            var html = count + ' ' + (count === 1 ? 'episode' : 'episodes');
-           if (newestStr) {
-             html += ' \u00b7 Newest: <time datetime="' + (d.stats.newest_iso || '') + '">' + newestStr + '</time>';
+           if (dateStr) {
+             html += ' \u00b7 ' + dateLabel + ': <time datetime="' + (dateIso || '') + '">' + dateStr + '</time>';
            }
            metaDiv.innerHTML = html;
         }
