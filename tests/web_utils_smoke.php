@@ -93,6 +93,23 @@ try {
         media_url('Podcasts/My Show', 'episode 01.mp3'),
         'http://pod.local/?action=media&feed=Podcasts%2FMy+Show&file=episode+01.mp3'
     );
+
+    $_SERVER = [
+        'HTTP_HOST' => 'pod.local',
+        'SCRIPT_NAME' => '/index.php',
+        'REQUEST_URI' => '/index.php',
+    ];
+    $assertSame('show_url uses fallback when index.php in URI', show_url('Podcasts/Show'), 'http://pod.local/index.php?show=Podcasts%2FShow');
+    $assertSame('show_url with back params', show_url('Podcasts/Show', ['q' => 'test']), 'http://pod.local/index.php?show=Podcasts%2FShow&return_to=%2Findex.php%3Fq%3Dtest');
+    $assertSame('feed_url uses fallback when index.php in URI', feed_url('Podcasts/Show'), 'http://pod.local/index.php?feed=Podcasts%2FShow');
+
+    $_SERVER = [
+        'HTTP_HOST' => 'pod.local',
+        'SCRIPT_NAME' => '/index.php',
+        'REQUEST_URI' => '/',
+    ];
+    $assertSame('show_url uses clean path when index.php missing from URI', show_url('Podcasts/Show'), 'http://pod.local/show/Podcasts/Show');
+    $assertSame('feed_url uses clean path when index.php missing from URI', feed_url('Podcasts/Show'), 'http://pod.local/feed/Podcasts/Show');
 } finally {
     $_SERVER = $originalServer;
     $_COOKIE = $originalCookie;

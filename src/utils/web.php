@@ -115,6 +115,60 @@ function base_url(): string {
     return $scheme . '://' . $host . app_base_path();
 }
 
+/**
+ * Detect if the server environment supports "clean" URLs via URL rewriting.
+ * If the current request explicitly includes 'index.php', we assume rewriting
+ * is not available and fall back to query-string based URLs for compatibility.
+ */
+function use_clean_urls(): bool {
+    $uri = (string)($_SERVER['REQUEST_URI'] ?? '');
+    // If index.php is in the URI, the user is likely on a server without
+    // mod_rewrite (e.g. PhpStorm built-in server or php -S).
+    return !str_contains($uri, 'index.php');
+}
+
+/**
+ * Generate a URL to the show details page.
+ */
+function show_url(string $feedId, array $backParams = []): string {
+    $base = base_url();
+
+    if (use_clean_urls()) {
+        $encodedId = implode('/', array_map('rawurlencode', explode('/', $feedId)));
+        $url = $base . 'show/' . $encodedId;
+    } else {
+        // Fallback for environments without rewriting.
+        $url = $base . 'index.php?show=' . rawurlencode($feedId);
+    }
+
+    if ($backParams) {
+        // Build the return_to URL. If we are not using clean URLs,
+        // the return_to should probably also point to index.php.
+        if (use_clean_urls()) {
+            $returnTo = app_base_path() . ($backParams ? '?' . http_build_query($backParams) : '');
+        } else {
+            $returnTo = app_base_path() . 'index.php' . ($backParams ? '?' . http_build_query($backParams) : '');
+        }
+        $url .= (str_contains($url, '?') ? '&' : '?') . 'return_to=' . rawurlencode($returnTo);
+    }
+
+    return $url;
+}
+
+/**
+ * Generate a URL to a feed's RSS XML.
+ */
+function feed_url(string $feedId, bool $cleanOnly = false): string {
+    $base = base_url();
+
+    if ($cleanOnly || use_clean_urls()) {
+        $encodedId = implode('/', array_map('rawurlencode', explode('/', $feedId)));
+        return $base . 'feed/' . $encodedId;
+    }
+
+    return $base . 'index.php?feed=' . rawurlencode($feedId);
+}
+
 function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }

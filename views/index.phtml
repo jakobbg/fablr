@@ -476,15 +476,14 @@
           // Browsers pass custom URL schemes to the OS far more reliably when
           // the URL is a simple path - query strings are routinely dropped by
           // Chrome and others before handing off to the native app handler.
-          $encodedId    = implode('/', array_map('rawurlencode', explode('/', $f['id'])));
-          $cleanFeedUrl = $assetBase . 'feed/' . $encodedId;
-          $podcastUrl   = preg_replace('#^https?://#i', 'podcast://', $cleanFeedUrl);
+          $podcastUrl = preg_replace('#^https?://#i', 'podcast://', feed_url($f['id'], true));
+
           // Encode the current page state so the show page can return here.
           $backParams = [];
           if ($filter !== 'all') $backParams['filter'] = $filter;
           if ($query !== '')     $backParams['q']      = $query;
-          $returnTo = $assetBase . ($backParams ? '?' . http_build_query($backParams) : '');
-          $showUrl  = $assetBase . 'show/' . $encodedId . '?return_to=' . rawurlencode($returnTo);
+
+          $showUrl = show_url($f['id'], $backParams);
 
           $stats = podcast_stats($f['dir']);
           $episodeCount = (int)$stats['count'];
@@ -612,10 +611,12 @@ function copyFeed(btn, url) {
 }());
 // Remember current page URL so the show detail page can navigate back here.
 (function () {
-  document.querySelectorAll('a.btn[href*="/show/"]').forEach(function (a) {
-    a.addEventListener('click', function () {
-      sessionStorage.setItem('ph-back', window.location.href);
-    });
+  document.querySelectorAll('a.btn').forEach(function (a) {
+    if (a.href.indexOf('/show/') !== -1 || a.href.indexOf('?show=') !== -1) {
+      a.addEventListener('click', function () {
+        sessionStorage.setItem('ph-back', window.location.href);
+      });
+    }
   });
 }());
 // Scroll to the previously viewed show card when returning from a show page.

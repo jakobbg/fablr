@@ -6,8 +6,7 @@
   <meta name="color-scheme" content="light dark">
 <?php
   $displayTitle  = ($meta !== null && !empty($meta['title'])) ? $meta['title'] : $name;
-  $encodedFeed   = implode('/', array_map('rawurlencode', explode('/', $feed)));
-  $showPageUrl   = $assetBase . 'show/' . $encodedFeed;
+  $showPageUrl   = show_url($feed);
   $ogImageUrl    = $coverUrl ?? $assetBase . 'og.png';
   $commitHash    = app_commit_hash();
   $shortHash     = $commitHash !== '' ? substr($commitHash, 0, 7) : '';
@@ -514,9 +513,8 @@
       </div>
 
       <?php
-        $rssUrl = $base . '?' . http_build_query(['feed' => $feed]);
-        $encodedId = implode('/', array_map('rawurlencode', explode('/', $feed)));
-        $podcastUrl = preg_replace('#^https?://#i', 'podcast://', $assetBase . 'feed/' . $encodedId);
+        $rssUrl = feed_url($feed);
+        $podcastUrl = preg_replace('#^https?://#i', 'podcast://', feed_url($feed, true));
       ?>
       <div class="hero-actions">
         <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($rssUrl)) ?>')" aria-label="Copy RSS feed URL">Copy RSS</button>
