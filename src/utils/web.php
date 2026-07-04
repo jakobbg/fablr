@@ -117,11 +117,7 @@ function h(string $s): string {
 }
 
 function app_quip_sentence(): string {
-    $quip = trim(APP_QUIP);
-    if ($quip === '') {
-        return '';
-    }
-    return preg_match('/[.!?]$/u', $quip) === 1 ? $quip : ($quip . '.');
+    return trim(APP_QUIP);
 }
 
 function human_age(?int $ts): ?string {
