@@ -42,13 +42,16 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
    "BOOKS_SUBDIR": "Books",
    "FEED_LANGUAGE": "no",
    "TRUSTED_PROXY_CIDRS": ["127.0.0.1/32", "::1/128"],
-   "FETCH_BOOK_METADATA": false
+   "FETCH_BOOK_METADATA": false,
+   "MAIN_PAGE_PASSWORD": "incorrect"
 }
 ```
 
 `TRUSTED_PROXY_CIDRS` controls when `X-Forwarded-Proto` and `X-Forwarded-Host` are trusted. Only requests from those proxy IP ranges may set the public scheme/host used in generated links and RSS enclosure URLs. Add your reverse proxy IP/CIDR to this list when running behind a proxy.
 
 `FETCH_BOOK_METADATA` enables optional audiobook description enrichment — see [Audiobook metadata](#audiobook-metadata).
+
+`MAIN_PAGE_PASSWORD` protects only the main index page with a full-page fablr login screen. Default is `"incorrect"` (enabled by default). Set it to `""` to disable. Show pages (`show/...`) and RSS feed URLs (`feed/...` / `?feed=...`) remain accessible.
 
 3. Organise your audio files into subfolders:
 
@@ -180,7 +183,9 @@ RSS responses include `X-Robots-Tag: noindex, nofollow` to suppress search-engin
 All dynamic values written into HTML or XML are passed through `htmlspecialchars` with `ENT_QUOTES | ENT_SUBSTITUTE`.
 
 **Access control**
-The app has no built-in authentication. For anything beyond a private LAN, restrict access at the network or reverse-proxy layer (VPN, HTTP basic auth, IP allowlist).
+Optional built-in auth can protect only the main index page by setting `MAIN_PAGE_PASSWORD` in `config/config.json`. It uses a styled first-party login page (not browser basic-auth prompts) to hide the feed directory listing while keeping direct show links and RSS endpoints working.
+
+For anything beyond a private LAN, still prefer network or reverse-proxy controls (VPN, IP allowlist, reverse-proxy auth) as the primary layer.
 
 ## Episode title cleanup
 

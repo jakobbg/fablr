@@ -35,6 +35,7 @@ const APP_QUIP    = 'Fables on demand. Your audio, your schedule.';
         'FEED_LANGUAGE'       => 'en',
         'TRUSTED_PROXY_CIDRS' => ['127.0.0.1/32', '::1/128'],
         'FETCH_BOOK_METADATA' => false,
+        'MAIN_PAGE_PASSWORD'  => 'incorrect',
     ];
 
     define('PODCAST_ROOT',        (string)($cfg['PODCAST_ROOT']        ?? $defaults['PODCAST_ROOT']));
@@ -43,5 +44,6 @@ const APP_QUIP    = 'Fables on demand. Your audio, your schedule.';
     define('FEED_LANGUAGE',       (string)($cfg['FEED_LANGUAGE']       ?? $defaults['FEED_LANGUAGE']));
     define('TRUSTED_PROXY_CIDRS', (array) ($cfg['TRUSTED_PROXY_CIDRS'] ?? $defaults['TRUSTED_PROXY_CIDRS']));
     define('FETCH_BOOK_METADATA', (bool)  ($cfg['FETCH_BOOK_METADATA'] ?? $defaults['FETCH_BOOK_METADATA']));
+    define('MAIN_PAGE_PASSWORD',  (string)($cfg['MAIN_PAGE_PASSWORD']  ?? $defaults['MAIN_PAGE_PASSWORD']));
 })();
 

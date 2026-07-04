@@ -161,6 +161,89 @@ function media_url(string $feed, string $relPath): string {
     ]);
 }
 
+function app_cookie_path(): string {
+    $path = (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php');
+    if ($path === '' || $path[0] !== '/') {
+        $path = '/index.php';
+    }
+    $dir = rtrim(dirname($path), '/');
+    return $dir === '' ? '/' : $dir . '/';
+}
+
+function main_page_auth_cookie_name(): string {
+    return APP_NAME . '_main_page_auth';
+}
+
+function main_page_auth_cookie_value(string $requiredPassword): string {
+    return hash('sha256', APP_NAME . '|main-page|' . $requiredPassword);
+}
+
+function is_main_page_authenticated(string $requiredPassword): bool {
+    $cookie = (string)($_COOKIE[main_page_auth_cookie_name()] ?? '');
+    if ($cookie === '') {
+        return false;
+    }
+    return hash_equals(main_page_auth_cookie_value($requiredPassword), $cookie);
+}
+
+function set_main_page_auth_cookie(string $requiredPassword): void {
+    setcookie(main_page_auth_cookie_name(), main_page_auth_cookie_value($requiredPassword), [
+        'expires' => time() + (86400 * 30),
+        'path' => app_cookie_path(),
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function render_main_page_login(string $errorMessage = ''): void {
+    $base = base_url();
+    $assetBase = substr($base, 0, strrpos($base, '/') + 1);
+    $ogImageUrl = $assetBase . 'og.png';
+    $iconUrl = $assetBase . 'apple-touch-icon.png';
+    $faviconUrl = $assetBase . 'favicon.png';
+    $errorMessage = trim($errorMessage);
+
+    header('Content-Type: text/html; charset=UTF-8');
+    header('Cache-Control: no-store');
+    send_security_headers('html');
+    require __DIR__ . '/../../views/login.phtml';
+}
+
+/**
+ * Protect only the main index page using a shared password.
+ */
+function require_main_page_password(): void {
+    $required = trim((string)MAIN_PAGE_PASSWORD);
+    if ($required === '') {
+        return;
+    }
+
+    if (is_main_page_authenticated($required)) {
+        return;
+    }
+
+    if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
+        $provided = (string)($_POST['main_page_password'] ?? '');
+        if ($provided !== '' && hash_equals($required, $provided)) {
+            set_main_page_auth_cookie($required);
+
+            $requestUri = (string)($_SERVER['REQUEST_URI'] ?? '/');
+            if ($requestUri === '' || $requestUri[0] !== '/') {
+                $requestUri = app_cookie_path();
+            }
+            header('Location: ' . $requestUri);
+            exit;
+        }
+
+        render_main_page_login('Wrong password. Please try again.');
+        exit;
+    }
+
+    render_main_page_login();
+    exit;
+}
+
 /**
  * Returns the full SHA of the current git HEAD, or '' if .git is unavailable.
  * Result is cached per-process.
@@ -278,7 +361,7 @@ function send_security_headers(string $context = 'html'): void {
         header('Strict-Transport-Security: max-age=31536000');
         // Minimal CSP: page uses inline styles, inline bootstrap script,
         // and one same-origin external script (js/theme.js).
-        header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'self'");
+        header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self'; media-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'");
         header('Referrer-Policy: same-origin');
         // Suppress search-engine indexing for a private media server.
         header('X-Robots-Tag: noindex, nofollow');

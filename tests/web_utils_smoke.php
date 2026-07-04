@@ -19,6 +19,7 @@ $assertSame = static function (string $label, $actual, $expected) use (&$failure
 };
 
 $originalServer = $_SERVER;
+$originalCookie = $_COOKIE;
 
 $runBaseUrl = static function (array $server): string {
     $_SERVER = $server;
@@ -68,6 +69,21 @@ try {
         'http://fallback.local/'
     );
 
+    $_SERVER = ['SCRIPT_NAME' => '/index.php'];
+    $assertSame('cookie path defaults to root', app_cookie_path(), '/');
+
+    $_SERVER = ['SCRIPT_NAME' => '/fablr/index.php'];
+    $assertSame('cookie path follows app subdir', app_cookie_path(), '/fablr/');
+
+    $_COOKIE = [];
+    $assertSame('missing auth cookie means not authenticated', is_main_page_authenticated('incorrect'), false);
+
+    $_COOKIE = [main_page_auth_cookie_name() => main_page_auth_cookie_value('incorrect')];
+    $assertSame('matching auth cookie validates', is_main_page_authenticated('incorrect'), true);
+
+    $_COOKIE = [main_page_auth_cookie_name() => main_page_auth_cookie_value('different')];
+    $assertSame('non-matching auth cookie rejects', is_main_page_authenticated('incorrect'), false);
+
     $_SERVER = [
         'HTTP_HOST' => 'pod.local',
         'SCRIPT_NAME' => '/index.php',
@@ -79,6 +95,7 @@ try {
     );
 } finally {
     $_SERVER = $originalServer;
+    $_COOKIE = $originalCookie;
 }
 
 if (!empty($failures)) {

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title><?= h(APP_NAME) ?> - Login</title>
+
+  <link rel="icon" type="image/png" href="<?= h($faviconUrl) ?>">
+  <link rel="apple-touch-icon" href="<?= h($iconUrl) ?>">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="<?= h(APP_NAME) ?>">
+  <meta property="og:title" content="<?= h(APP_NAME . ': Private Library') ?>">
+  <meta property="og:description" content="<?= h(APP_QUIP) ?>">
+  <meta property="og:image" content="<?= h($ogImageUrl) ?>">
+
+  <style>
+  :root {
+    --bg1: #0b1220;
+    --bg2: #0d1b2e;
+    --ink: rgba(255,255,255,.92);
+    --muted: rgba(255,255,255,.70);
+    --card: rgba(255,255,255,.08);
+    --cardBorder: rgba(255,255,255,.16);
+    --shadow: rgba(0,0,0,.32);
+    --accentA: #7c3aed;
+    --accentB: #06b6d4;
+    --danger: #fda4af;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
+    --font-serif: ui-serif, "New York", "Palatino Linotype", Georgia, serif;
+  }
+
+  @media (prefers-color-scheme: light) {
+    html {
+      --bg1: #f6f7fb;
+      --bg2: #eaf3ff;
+      --ink: rgba(15,23,42,.92);
+      --muted: rgba(15,23,42,.66);
+      --card: rgba(255,255,255,.78);
+      --cardBorder: rgba(15,23,42,.14);
+      --shadow: rgba(15,23,42,.15);
+      --danger: #be123c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background:
+      radial-gradient(1000px 440px at 4% 8%, rgba(124,58,237,.34), transparent 64%),
+      radial-gradient(980px 440px at 95% 2%, rgba(6,182,212,.27), transparent 62%),
+      linear-gradient(180deg, var(--bg1), var(--bg2));
+    background-attachment: fixed;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+
+  .panel {
+    width: min(460px, 100%);
+    border: 1px solid var(--cardBorder);
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: 0 24px 70px var(--shadow);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+  }
+
+  .top {
+    padding: 22px 24px 8px;
+  }
+
+  .brand {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 5vw, 36px);
+    letter-spacing: .3px;
+  }
+
+  .quip {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .form {
+    padding: 18px 24px 24px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .label {
+    font-size: 12px;
+    letter-spacing: .55px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .input {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--cardBorder);
+    background: rgba(255,255,255,.08);
+    color: var(--ink);
+    padding: 12px 14px;
+    font-size: 16px;
+    outline: none;
+  }
+
+  .input:focus-visible {
+    border-color: rgba(124,58,237,.64);
+    box-shadow: 0 0 0 2px rgba(124,58,237,.25);
+  }
+
+  .button {
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(124,58,237,.98), rgba(6,182,212,.82));
+  }
+
+  .button:hover {
+    filter: brightness(1.05);
+  }
+
+  .error {
+    margin: 0;
+    font-size: 13px;
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  .hint {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  </style>
+</head>
+<body>
+  <main class="panel" aria-labelledby="login-title">
+    <header class="top">
+      <h1 class="brand" id="login-title"><?= h(APP_NAME) ?></h1>
+      <p class="quip"><?= h(APP_QUIP) ?></p>
+    </header>
+
+    <form class="form" method="post" action="">
+      <label class="label" for="main_page_password">Shared Password</label>
+      <input
+        class="input"
+        id="main_page_password"
+        name="main_page_password"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <?php if ($errorMessage !== ''): ?>
+        <p class="error"><?= h($errorMessage) ?></p>
+      <?php endif; ?>
+
+      <button class="button" type="submit">let me in</button>
+      <p class="hint">Access is required only for the main page.</p>
+    </form>
+  </main>
+</body>
+</html>
