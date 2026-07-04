@@ -51,14 +51,13 @@ function render_show_page(string $feed): void {
     $feedType = str_starts_with($feed, BOOKS_SUBDIR . '/') ? 'book' : 'podcast';
     $name     = basename($feed);
     $base      = base_url();
-    $assetBase = substr($base, 0, strrpos($base, '/') + 1);
 
     // Resolve the back-navigation URL from the ?return_to= parameter.
     // Validate strictly: must be a relative path (starts with /, no // or newlines).
     $rawBack = trim((string)($_GET['return_to'] ?? ''));
     $backUrl = ($rawBack !== '' && $rawBack[0] === '/' && !str_contains($rawBack, '//') && !str_contains($rawBack, "\n") && !str_contains($rawBack, "\r"))
         ? $rawBack
-        : $assetBase;  // relative app root — works even for shared/direct links
+        : $base;  // relative app root — works even for shared/direct links
 
     // Open Library metadata (books only, when enabled).
     // Only reads the local cache — no blocking network request.
@@ -137,7 +136,7 @@ function render_show_page(string $feed): void {
     // Allow conditional 304s; pages are dynamic so revalidation is required.
     header('Cache-Control: no-cache');
     // HTTP/2 preload hint for the one external script (theme toggle).
-    header('Link: <' . $assetBase . 'js/theme.js>; rel=preload; as=script', false);
+    header('Link: <' . $base . 'js/theme.js>; rel=preload; as=script', false);
     send_security_headers('html');
     require __DIR__ . '/../../views/show.phtml';
 }

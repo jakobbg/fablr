@@ -77,6 +77,15 @@ function is_trusted_proxy_request(): bool {
     return false;
 }
 
+function app_base_path(): string {
+    $path = (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php');
+    if ($path === '' || $path[0] !== '/') {
+        $path = '/index.php';
+    }
+    $dir = rtrim(dirname($path), '/');
+    return $dir === '' ? '/' : $dir . '/';
+}
+
 function base_url(): string {
     $trustedProxy = is_trusted_proxy_request();
 
@@ -103,13 +112,7 @@ function base_url(): string {
     }
 
     $scheme = $https ? 'https' : 'http';
-    $path = (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php');
-    if ($path === '' || $path[0] !== '/') {
-        $path = '/index.php';
-    }
-    // Strip the script filename so URLs never contain index.php.
-    $path = rtrim(dirname($path), '/') . '/';
-    return $scheme . '://' . $host . $path;
+    return $scheme . '://' . $host . app_base_path();
 }
 
 function h(string $s): string {
@@ -166,12 +169,7 @@ function media_url(string $feed, string $relPath): string {
 }
 
 function app_cookie_path(): string {
-    $path = (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php');
-    if ($path === '' || $path[0] !== '/') {
-        $path = '/index.php';
-    }
-    $dir = rtrim(dirname($path), '/');
-    return $dir === '' ? '/' : $dir . '/';
+    return app_base_path();
 }
 
 function main_page_auth_cookie_name(): string {
@@ -202,10 +200,9 @@ function set_main_page_auth_cookie(string $requiredPassword): void {
 
 function render_main_page_login(string $errorMessage = ''): void {
     $base = base_url();
-    $assetBase = substr($base, 0, strrpos($base, '/') + 1);
-    $ogImageUrl = $assetBase . 'og.png';
-    $iconUrl = $assetBase . 'apple-touch-icon.png';
-    $faviconUrl = $assetBase . 'favicon.png';
+    $ogImageUrl = $base . 'og.png';
+    $iconUrl = $base . 'apple-touch-icon.png';
+    $faviconUrl = $base . 'favicon.png';
     $errorMessage = trim($errorMessage);
 
     header('Content-Type: text/html; charset=UTF-8');
@@ -255,13 +252,15 @@ function require_main_page_password(): void {
 function app_commit_hash(): string {
     static $hash = null;
     if ($hash !== null) return $hash;
-    $git  = __DIR__ . '/../../.git';
-    $head = @file_get_contents($git . '/HEAD');
-    if ($head === false) return $hash = '';
-    $head = trim($head);
+    $git = __DIR__ . '/../../.git';
+    if (!is_dir($git)) return $hash = '';
+    $headFile = $git . '/HEAD';
+    if (!is_readable($headFile)) return $hash = '';
+    $head = trim((string)file_get_contents($headFile));
     if (str_starts_with($head, 'ref: ')) {
-        $ref = @file_get_contents($git . '/' . substr($head, 5));
-        $head = $ref !== false ? trim($ref) : '';
+        $refFile = $git . '/' . substr($head, 5);
+        if (!is_readable($refFile)) return $hash = '';
+        $head = trim((string)file_get_contents($refFile));
     }
     return $hash = (preg_match('/^[0-9a-f]{40}$/', $head) ? $head : '');
 }
@@ -369,10 +368,8 @@ function send_security_headers(string $context = 'html'): void {
         header('Referrer-Policy: same-origin');
         // Suppress search-engine indexing for a private media server.
         header('X-Robots-Tag: noindex, nofollow');
-    }
-
-    if ($context === 'rss') {
-        // RSS feeds should not be indexed as web pages.
+    } elseif ($context === 'rss' || $context === 'media' || $context === 'metadata' || $context === 'asset') {
+        // RSS feeds, media and assets should not be indexed as web pages.
         header('X-Robots-Tag: noindex, nofollow');
     }
 }

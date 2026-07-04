@@ -14,7 +14,7 @@ declare(strict_types=1);
 function save_notes_handler(string $feed, string $content): void {
     header('Content-Type: application/json; charset=UTF-8');
     header('Cache-Control: no-store');
-    send_security_headers('rss');
+    send_security_headers('metadata');
 
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
         http_response_code(405);

@@ -13,7 +13,7 @@ declare(strict_types=1);
 function send_metadata_json(string $feed): void {
     header('Content-Type: application/json; charset=UTF-8');
     header('Cache-Control: no-store');
-    send_security_headers('rss');
+    send_security_headers('metadata');
 
     $feedDir = resolve_feed_dir($feed);
     if ($feedDir === null) {

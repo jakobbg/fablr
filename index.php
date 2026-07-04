@@ -10,8 +10,8 @@ $feed   = (string)($_GET['feed'] ?? '');
 $show   = (string)($_GET['show'] ?? '');
 
 if ($action === 'img') {
-  $name = (string)($_GET['name'] ?? '');
-  send_image_asset(__DIR__, $name);
+    $name = (string)($_GET['name'] ?? '');
+    send_image_asset(__DIR__, $name);
     exit;
 }
 
