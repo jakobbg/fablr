@@ -29,11 +29,18 @@ function list_podcasts(string $filter = 'all'): array {
             if ($name[0] === '.') continue;
             $full = $parent . DIRECTORY_SEPARATOR . $name;
             if (!is_dir($full) || !is_readable($full)) continue;
+            $realPath = realpath($full);
+            // On some environments (like CIFS/Samba), the directory name might be
+            // returned as a short 8.3 alias (e.g. "D0SGZS~6"). realpath() usually
+            // resolves this to the canonical long name.
+            $displayName = ($realPath !== false) ? basename($realPath) : $name;
+            $canonical   = ($realPath !== false) ? $realPath : $full;
+
             $out[] = [
-                'id'   => $s['subdir'] . '/' . $name,
-                'name' => $name,
+                'id'   => $s['subdir'] . '/' . $displayName,
+                'name' => $displayName,
                 'type' => $s['type'],
-                'dir'  => $full,
+                'dir'  => $canonical,
             ];
         }
     }
@@ -103,7 +110,7 @@ function podcast_stats(string $feedDir): array {
             $hasContent = true;
         }
 
-        $path = $fi->getPathname();
+        $path = $fi->getRealPath() ?: $fi->getPathname();
         $rel = substr($path, strlen(rtrim($feedDir, DIRECTORY_SEPARATOR)) + 1);
         $rel = str_replace(DIRECTORY_SEPARATOR, '/', $rel);
 
@@ -137,7 +144,7 @@ function find_media_files(string $feedDir, string $type = 'podcast'): array {
         $ext = strtolower((string)$fi->getExtension());
         if (!isset($allowed[$ext])) continue;
 
-        $path = $fi->getPathname();
+        $path = $fi->getRealPath() ?: $fi->getPathname();
         $rel = substr($path, strlen(rtrim($feedDir, DIRECTORY_SEPARATOR)) + 1);
         $rel = str_replace(DIRECTORY_SEPARATOR, '/', $rel);
         $mtime = @filemtime($path) ?: 0;
@@ -212,6 +219,8 @@ function discover_images(string $feedDir): array {
         if ($name[0] === '.') continue;
 
         $path = $feedDir . DIRECTORY_SEPARATOR . $name;
+        $realPath = realpath($path);
+        $path = ($realPath !== false) ? $realPath : $path;
         if (!is_file($path) || !is_readable($path)) continue;
 
         $ext = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
@@ -230,7 +239,7 @@ function discover_images(string $feedDir): array {
             'path' => $path,
             'area' => $area,
             'size' => $size,
-            'name' => $name,
+            'name' => basename($path),
         ];
     }
 
