@@ -303,6 +303,14 @@
     .cover, .cover-placeholder { width: 100%; height: 100%; }
     .stat-val { font-size: 16px; }
     .th-kbps, .td-kbps, .th-dt, .td-dt { display: none; }
+    /* Hide size and format columns on mobile */
+    .th-sz, .td-sz, .th-fmt, .td-fmt { display: none; }
+    /* Compact table typography and spacing */
+    table { font-size: 12px; }
+    thead th { padding: 8px 6px; font-size: 10px; }
+    td { padding: 8px 6px; }
+    td.play-col { padding: 4px 4px 4px 8px; width: 34px; }
+    td.title { max-width: none; }
   }
 
   /* Per-row play button */
@@ -590,8 +598,8 @@
             <th class="r" style="width:36px">#</th>
             <th>Title</th>
             <th class="r">Duration</th>
-            <th class="r">Size</th>
-            <th class="c">Format</th>
+            <th class="r th-sz">Size</th>
+            <th class="c th-fmt">Format</th>
             <th class="r th-kbps">Bitrate</th>
             <?php if ($feedType === 'podcast'): ?><th class="r th-dt">Date</th><?php endif; ?>
             <th style="width:32px"></th>
@@ -616,8 +624,8 @@
             <td class="r num"><?= $idx + 1 ?></td>
             <td class="title"><?= h($epTitle) ?></td>
             <td class="r dur"><?= h(format_duration($f['duration'])) ?></td>
-            <td class="r sz"><?= h(format_filesize($f['size'])) ?></td>
-            <td class="c"><span class="fmt-badge"><?= h($fmt) ?></span></td>
+            <td class="r sz td-sz"><?= h(format_filesize($f['size'])) ?></td>
+            <td class="c td-fmt"><span class="fmt-badge"><?= h($fmt) ?></span></td>
             <td class="r td-kbps kbps"><?= $kbps !== null ? h((string)$kbps) . ' kbps' : '—' ?></td>
             <?php if ($feedType === 'podcast'): ?>
               <td class="r td-dt dt"><?= $pubDate !== null ? h($pubDate) : '—' ?></td>
