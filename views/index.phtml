@@ -472,11 +472,6 @@
       <div class="grid">
         <?php foreach ($feeds as $f):
           $rss = $base . '?' . http_build_query(['feed' => $f['id']]);
-          // Build a clean path URL (no query string) for the podcast:// scheme.
-          // Browsers pass custom URL schemes to the OS far more reliably when
-          // the URL is a simple path - query strings are routinely dropped by
-          // Chrome and others before handing off to the native app handler.
-          $podcastUrl = preg_replace('#^https?://#i', 'podcast://', feed_url($f['id'], true));
 
           // Encode the current page state so the show page can return here.
           $backParams = [];
@@ -525,7 +520,6 @@
             </div>
             <div class="actions">
               <a href="<?php echo h($showUrl); ?>" class="btn" aria-label="View episodes for <?php echo h($f['name']); ?>">Details</a>
-              <a href="<?php echo h($podcastUrl); ?>" class="btn primary" aria-label="Subscribe to <?php echo h($f['name']); ?>">Subscribe</a>
             </div>
           </section>
         <?php endforeach; ?>
@@ -537,7 +531,7 @@
 
     <div class="divider"></div>
     <footer class="site-footer">
-      <p>Tap <strong>Subscribe</strong> to open your app directly. Use the <strong>clipboard icon</strong> on each cover to copy the RSS URL into any other podcast app.</p>
+      <p>Use the <strong>clipboard icon</strong> on each cover to copy the RSS URL into any podcast app. Feed URLs remain public and shareable.</p>
       <p class="brand-note"><?= h(APP_NAME) ?> · <?= h(APP_QUIP) ?> · <?= h(APP_VERSION) ?><?php if ($shortHash !== ''): ?> · <?= h($shortHash) ?><?php endif; ?></p>
     </footer>
   </div>

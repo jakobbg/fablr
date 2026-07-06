@@ -71,10 +71,10 @@ if ($feed !== '') {
 }
 
 if ($show !== '') {
+    require_main_page_password();
     render_show_page($show);
     exit;
 }
 
 $filter = (string)($_GET['filter'] ?? 'all');
-require_main_page_password();
 render_index_page($filter);

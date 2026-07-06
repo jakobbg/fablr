@@ -20,7 +20,7 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 - **Cleans up episode titles** automatically — raw filenames are transformed into readable labels before they appear in your podcast app (see [Episode title cleanup](#episode-title-cleanup))
 - **Audiobook metadata enrichment** *(opt-in)* — fetches book descriptions from Open Library and uses them as feed summaries in your podcast app (see [Audiobook metadata](#audiobook-metadata))
 - **Rich link previews** — Open Graph and Twitter Card meta tags make shared links look great in iMessage, Slack, Discord, etc. Includes an `apple-touch-icon` for adding the page to the iOS home screen
-- **One-click Subscribe action** — a clean path URL (`podcast://host/feed/…`) with no query string opens your podcast app more reliably in browsers like Chrome and Safari
+- **One-click Subscribe action** — from the authenticated show page, a clean path URL (`podcast://host/feed/…`) with no query string opens your podcast app more reliably in browsers like Chrome and Safari
 - **Unified description editing** — show pages always expose an editable **Description** section (podcasts and audiobooks), regardless of whether the current text came from local notes, Open Library, or fallback copy
 - **Subtle brand footer metadata** — both main and show pages include app name + quip + version + short commit id in a low-contrast footer line
 - **Accessible** — semantic landmarks, skip link, visible focus rings, reduced-motion support, emoji hidden from screen readers, `<time>` elements for dates (see [Accessibility](#accessibility))
@@ -51,7 +51,7 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 
 `FETCH_BOOK_METADATA` enables optional audiobook description enrichment — see [Audiobook metadata](#audiobook-metadata).
 
-`MAIN_PAGE_PASSWORD` protects only the main index page with a full-page fablr login screen. Default is `"incorrect"` (enabled by default). Set it to `""` to disable. Show pages (`show/...`) and RSS feed URLs (`feed/...` / `?feed=...`) remain accessible.
+`MAIN_PAGE_PASSWORD` protects show/detail pages (`show/...`) with a full-page fablr login screen. The main index remains visible so users can browse available feeds, while show-page UI actions (Subscribe, play/download, edit description) require authentication. RSS feed URLs (`feed/...` / `?feed=...`) remain accessible and shareable.
 
 3. Organise your audio files into subfolders:
 
@@ -80,13 +80,14 @@ direct feed resolution.
 
 ## Subscribing in a podcast app
 
-Each card on the index page has three buttons:
+Each card on the index page has two actions:
 
 | Button | What it does |
 |---|---|
 | **Details** | Opens the feed detail page — full episode list, per-track metadata, and built-in browser player |
 | **Copy RSS** | Copies the raw RSS URL to the clipboard — paste it into any podcast app's "Add by URL" dialog |
-| **Subscribe** | Opens your podcast app via `podcast://` and subscribes immediately (works reliably in Chrome and Safari on macOS and iOS) |
+
+The **Subscribe** action is available on authenticated show pages.
 
 The Subscribe link uses the `podcast://` URL scheme with a clean path (no query string). An Apache `mod_rewrite` rule maps `/feed/Show+Name` to the PHP RSS handler, which lets the link work reliably across all browsers. Without this, browsers sometimes strip query strings when handing off custom URL schemes to native apps.
 
@@ -187,7 +188,7 @@ RSS responses include `X-Robots-Tag: noindex, nofollow` to suppress search-engin
 All dynamic values written into HTML or XML are passed through `htmlspecialchars` with `ENT_QUOTES | ENT_SUBSTITUTE`.
 
 **Access control**
-Optional built-in auth can protect only the main index page by setting `MAIN_PAGE_PASSWORD` in `config/config.json`. It uses a styled first-party login page (not browser basic-auth prompts) to hide the feed directory listing while keeping direct show links and RSS endpoints working.
+Optional built-in auth can protect show/detail pages by setting `MAIN_PAGE_PASSWORD` in `config/config.json`. It uses a styled first-party login page (not browser basic-auth prompts) so users can browse the feed catalog on the index page, but must authenticate before using show-page UI actions while direct RSS endpoints still work.
 
 For anything beyond a private LAN, still prefer network or reverse-proxy controls (VPN, IP allowlist, reverse-proxy auth) as the primary layer.
 
