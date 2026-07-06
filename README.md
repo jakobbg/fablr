@@ -33,13 +33,13 @@ Intended for self-hosters who have downloaded podcasts or ripped audiobooks to a
 ## Setup
 
 1. Copy the full project (`index.php`, `.htaccess`, `config/`, `src/`, `views/`, `cache/`, and image assets) to your web root (or virtual host directory).
-2. Copy the constants template and keep your local `constants.php` untracked:
+2. Copy the config template locally and make system-specific changes:
 
 ```bash
-cp config/constants.php.sample config/constants.php
+cp config/config.json.sample config/config.json
 ```
 
-3. Edit user settings in `config/config.json`:
+3. Edit user settings in your local `config/config.json`:
 
 ```php
 {
@@ -117,7 +117,7 @@ Use the **Edit description** control on the show page to update text directly. Y
 
 **Stats caching**
 
-Episode count, total size/duration, cover art, and the newest/added date shown on the index and show pages are cached in `cache/metadata/`. Opening either page triggers a background refresh of that cache so it stays current without slowing down the initial render — but a real rescan of the feed folder (which can be slow on a NAS/network share) only happens at most once every 30 minutes per feed (`CACHE_MIN_REFRESH_INTERVAL` in your local `config/constants.php`, initially copied from `config/constants.php.sample`); more frequent page loads simply reuse the existing cache.
+Episode count, total size/duration, cover art, and the newest/added date shown on the index and show pages are cached in `cache/metadata/`. Opening either page triggers a background refresh of that cache so it stays current without slowing down the initial render — but a real rescan of the feed folder (which can be slow on a NAS/network share) only happens at most once every 30 minutes per feed (`CACHE_MIN_REFRESH_INTERVAL` in `config/constants.php`); more frequent page loads simply reuse the existing cache.
 
 ## Smoke tests
 
@@ -137,7 +137,7 @@ They validate high-risk logic such as episode title normalization, feed path saf
 
 ## Audiobook metadata
 
-When `FETCH_BOOK_METADATA` is set to `true` in `config/config.json`, audiobook RSS feeds are enriched with a book description fetched from the [Open Library](https://openlibrary.org) API. The description appears as the feed summary in your podcast app.
+When `FETCH_BOOK_METADATA` is set to `true` in your local `config/config.json`, audiobook RSS feeds are enriched with a book description fetched from the [Open Library](https://openlibrary.org) API. The description appears as the feed summary in your podcast app.
 
 **How it works**
 
@@ -194,7 +194,7 @@ RSS responses include `X-Robots-Tag: noindex, nofollow` to suppress search-engin
 All dynamic values written into HTML or XML are passed through `htmlspecialchars` with `ENT_QUOTES | ENT_SUBSTITUTE`.
 
 **Access control**
-Optional built-in auth can protect show/detail pages by setting `MAIN_PAGE_PASSWORD` in `config/config.json`. It uses a styled first-party login page (not browser basic-auth prompts) so users can browse the feed catalog on the index page, but must authenticate before using show-page UI actions while direct RSS endpoints still work.
+Optional built-in auth can protect show/detail pages by setting `MAIN_PAGE_PASSWORD` in your local `config/config.json`. It uses a styled first-party login page (not browser basic-auth prompts) so users can browse the feed catalog on the index page, but must authenticate before using show-page UI actions while direct RSS endpoints still work.
 
 For anything beyond a private LAN, still prefer network or reverse-proxy controls (VPN, IP allowlist, reverse-proxy auth) as the primary layer.
 

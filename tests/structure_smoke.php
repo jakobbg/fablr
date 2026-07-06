@@ -5,8 +5,8 @@ $requiredPaths = [
     'index.php',
     '.htaccess',
     'config/bootstrap.php',
-    'config/constants.php.sample',
-    'config/config.json',
+    'config/constants.php',
+    'config/config.json.sample',
     'src/utils/web.php',
     'src/utils/media.php',
     'src/utils/audioduration.php',
@@ -67,16 +67,16 @@ if (!is_writable($cacheDir)) {
 
 echo "Structure smoke tests passed: " . count($requiredPaths) . "\n";
 
-// Verify config.json is valid JSON and contains required keys.
-$cfgRaw = @file_get_contents($root . '/config/config.json');
+// Verify config.json.sample is valid JSON and contains required keys.
+$cfgRaw = @file_get_contents($root . '/config/config.json.sample');
 if ($cfgRaw === false || ($cfg = json_decode($cfgRaw, true)) === null) {
-    fwrite(STDERR, "Structure smoke tests failed: config/config.json is missing or contains invalid JSON.\n");
+    fwrite(STDERR, "Structure smoke tests failed: config/config.json.sample is missing or contains invalid JSON.\n");
     exit(1);
 }
 $requiredKeys = ['PODCAST_ROOT', 'PODCASTS_SUBDIR', 'BOOKS_SUBDIR', 'FEED_LANGUAGE', 'TRUSTED_PROXY_CIDRS', 'FETCH_BOOK_METADATA', 'MAIN_PAGE_PASSWORD'];
 foreach ($requiredKeys as $k) {
     if (!array_key_exists($k, $cfg)) {
-        fwrite(STDERR, "Structure smoke tests failed: config/config.json is missing key: {$k}\n");
+        fwrite(STDERR, "Structure smoke tests failed: config/config.json.sample is missing key: {$k}\n");
         exit(1);
     }
 }

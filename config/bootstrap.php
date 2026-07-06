@@ -4,7 +4,7 @@ declare(strict_types=1);
 $constantsPath = __DIR__ . '/constants.php';
 if (!is_file($constantsPath)) {
 	http_response_code(500);
-	die('Missing config/constants.php - copy config/constants.php.sample to config/constants.php and edit local settings.');
+	die('Missing config/constants.php.');
 }
 require_once $constantsPath;
 require_once __DIR__ . '/../src/utils/web.php';

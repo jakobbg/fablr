@@ -21,7 +21,7 @@ const CACHE_MIN_REFRESH_INTERVAL = 1800; // 30 minutes
 
     if (!is_file($path)) {
         http_response_code(500);
-        die('Missing config/config.json — copy config.example.json and edit your settings.');
+        die('Missing config/config.json — copy config/config.json.sample and edit your local settings.');
     }
     $raw = file_get_contents($path);
     if ($raw === false) {
