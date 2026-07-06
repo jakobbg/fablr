@@ -509,9 +509,6 @@
             <div class="meta">
               <?php echo (int)$episodeCount; ?> <?php echo $episodeCount === 1 ? 'episode' : 'episodes'; ?><?php if ($dateHuman !== null): ?> &middot; <?php echo h($dateLabel); ?>: <time datetime="<?php echo h((string)$dateIso); ?>"><?php echo h($dateHuman); ?></time><?php endif; ?>
             </div>
-            <div class="actions">
-              <a href="<?php echo h($showUrl); ?>" class="btn" aria-label="View episodes for <?php echo h($f['name']); ?>">Details</a>
-            </div>
           </section>
         <?php endforeach; ?>
       </div>
@@ -583,7 +580,7 @@
 }());
 // Remember current page URL so the show detail page can navigate back here.
 (function () {
-  document.querySelectorAll('a.btn').forEach(function (a) {
+  document.querySelectorAll('.cover-wrap a').forEach(function (a) {
     if (a.href.indexOf('/show/') !== -1 || a.href.indexOf('?show=') !== -1) {
       a.addEventListener('click', function () {
         sessionStorage.setItem('ph-back', window.location.href);
