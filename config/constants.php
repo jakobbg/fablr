@@ -34,23 +34,36 @@ const CACHE_MIN_REFRESH_INTERVAL = 1800; // 30 minutes
         die('config/config.json contains invalid JSON: ' . json_last_error_msg());
     }
 
-    // Defaults used when a key is absent from config.json.
-    $defaults = [
-        'PODCAST_ROOT'        => '/mnt/podcasts',
-        'PODCASTS_SUBDIR'     => 'Podcasts',
-        'BOOKS_SUBDIR'        => 'Books',
-        'FEED_LANGUAGE'       => 'en',
-        'TRUSTED_PROXY_CIDRS' => ['127.0.0.1/32', '::1/128'],
-        'FETCH_BOOK_METADATA' => false,
-        'MAIN_PAGE_PASSWORD'  => 'incorrect',
+    $requiredKeys = [
+        'PODCAST_ROOT',
+        'PODCASTS_SUBDIR',
+        'BOOKS_SUBDIR',
+        'FEED_LANGUAGE',
+        'TRUSTED_PROXY_CIDRS',
+        'FETCH_BOOK_METADATA',
+        'MAIN_PAGE_PASSWORD',
     ];
+    $missing = [];
+    foreach ($requiredKeys as $key) {
+        if (!array_key_exists($key, $cfg)) {
+            $missing[] = $key;
+        }
+    }
+    if ($missing !== []) {
+        http_response_code(500);
+        die('config/config.json is missing required keys: ' . implode(', ', $missing) . '. Copy config/config.json.sample and fill all settings.');
+    }
+    if (!is_array($cfg['TRUSTED_PROXY_CIDRS'])) {
+        http_response_code(500);
+        die('config/config.json key TRUSTED_PROXY_CIDRS must be an array.');
+    }
 
-    define('PODCAST_ROOT',        (string)($cfg['PODCAST_ROOT']        ?? $defaults['PODCAST_ROOT']));
-    define('PODCASTS_SUBDIR',     (string)($cfg['PODCASTS_SUBDIR']     ?? $defaults['PODCASTS_SUBDIR']));
-    define('BOOKS_SUBDIR',        (string)($cfg['BOOKS_SUBDIR']        ?? $defaults['BOOKS_SUBDIR']));
-    define('FEED_LANGUAGE',       (string)($cfg['FEED_LANGUAGE']       ?? $defaults['FEED_LANGUAGE']));
-    define('TRUSTED_PROXY_CIDRS', (array) ($cfg['TRUSTED_PROXY_CIDRS'] ?? $defaults['TRUSTED_PROXY_CIDRS']));
-    define('FETCH_BOOK_METADATA', (bool)  ($cfg['FETCH_BOOK_METADATA'] ?? $defaults['FETCH_BOOK_METADATA']));
-    define('MAIN_PAGE_PASSWORD',  (string)($cfg['MAIN_PAGE_PASSWORD']  ?? $defaults['MAIN_PAGE_PASSWORD']));
+    define('PODCAST_ROOT',        (string)$cfg['PODCAST_ROOT']);
+    define('PODCASTS_SUBDIR',     (string)$cfg['PODCASTS_SUBDIR']);
+    define('BOOKS_SUBDIR',        (string)$cfg['BOOKS_SUBDIR']);
+    define('FEED_LANGUAGE',       (string)$cfg['FEED_LANGUAGE']);
+    define('TRUSTED_PROXY_CIDRS', (array) $cfg['TRUSTED_PROXY_CIDRS']);
+    define('FETCH_BOOK_METADATA', (bool)  $cfg['FETCH_BOOK_METADATA']);
+    define('MAIN_PAGE_PASSWORD',  (string)$cfg['MAIN_PAGE_PASSWORD']);
 })();
 
