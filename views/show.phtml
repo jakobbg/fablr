@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
 <?php
   $displayTitle  = ($meta !== null && !empty($meta['title'])) ? $meta['title'] : $name;
-  $showPageUrl   = show_url($feed);
+  $showPageUrl   = show_share_url($feed);
   $ogImageUrl    = $coverUrl ?? $assetBase . 'og.png';
   $commitHash    = app_commit_hash();
   $shortHash     = $commitHash !== '' ? substr($commitHash, 0, 7) : '';
@@ -531,6 +531,7 @@
       ?>
       <div class="hero-actions">
         <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($rssUrl)) ?>')" aria-label="Copy RSS feed URL">Copy RSS</button>
+        <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($showPageUrl)) ?>')" aria-label="Copy shareable show URL">Copy Share Link</button>
         <a href="<?= h($podcastUrl) ?>" class="btn primary" aria-label="Subscribe to <?= h($displayTitle) ?>">Subscribe</a>
       </div>
     </div>

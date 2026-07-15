@@ -191,6 +191,73 @@ function show_url(string $feedId, array $backParams = []): string {
 }
 
 /**
+ * Lifespan for signed show-share URLs that can bypass show-page auth.
+ */
+function show_share_ttl_seconds(): int {
+    return 86400 * 30; // 30 days
+}
+
+/**
+ * Secret used for HMAC signing of show-share URLs.
+ */
+function show_share_signing_key(): string {
+    $required = trim((string)MAIN_PAGE_PASSWORD);
+    return hash('sha256', APP_NAME . '|show-share|' . $required);
+}
+
+/**
+ * Build an HMAC signature tied to a specific feed and expiry timestamp.
+ */
+function show_share_signature(string $feedId, int $expires): string {
+    return hash_hmac('sha256', $feedId . '|' . $expires, show_share_signing_key());
+}
+
+/**
+ * Generate a shareable URL for a show page with signed auth-bypass params.
+ */
+function show_share_url(string $feedId, array $backParams = []): string {
+    $url = show_url($feedId, $backParams);
+
+    if (trim((string)MAIN_PAGE_PASSWORD) === '') {
+        return $url;
+    }
+
+    $expires = time() + show_share_ttl_seconds();
+    $sig = show_share_signature($feedId, $expires);
+    $sep = str_contains($url, '?') ? '&' : '?';
+    return $url . $sep . 'share_exp=' . rawurlencode((string)$expires) . '&share_sig=' . rawurlencode($sig);
+}
+
+/**
+ * Validate the current request's signed show-share parameters.
+ */
+function is_valid_show_share_access(string $feedId): bool {
+    if (trim((string)MAIN_PAGE_PASSWORD) === '') {
+        return false;
+    }
+
+    $expRaw = (string)($_GET['share_exp'] ?? '');
+    $sig = (string)($_GET['share_sig'] ?? '');
+    if (!preg_match('/^[0-9]{1,12}$/', $expRaw) || !preg_match('/^[a-f0-9]{64}$/', $sig)) {
+        return false;
+    }
+
+    $expires = (int)$expRaw;
+    if ($expires < time()) {
+        return false;
+    }
+
+    // Reject excessively far-future expiries to limit replay lifetime if
+    // query parameters are tampered with.
+    if ($expires > (time() + (show_share_ttl_seconds() * 2))) {
+        return false;
+    }
+
+    $expected = show_share_signature($feedId, $expires);
+    return hash_equals($expected, $sig);
+}
+
+/**
  * Generate a URL to a feed's RSS XML.
  */
 function feed_url(string $feedId, bool $cleanOnly = false): string {

@@ -69,7 +69,10 @@ if ($feed !== '') {
 }
 
 if ($show !== '') {
-    require_main_page_password();
+    $required = trim((string)MAIN_PAGE_PASSWORD);
+    if ($required !== '' && !is_main_page_authenticated($required) && !is_valid_show_share_access($show)) {
+        require_main_page_password();
+    }
     render_show_page($show);
     exit;
 }

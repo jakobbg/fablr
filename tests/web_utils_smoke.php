@@ -20,6 +20,7 @@ $assertSame = static function (string $label, $actual, $expected) use (&$failure
 
 $originalServer = $_SERVER;
 $originalCookie = $_COOKIE;
+$originalGet = $_GET;
 
 $runBaseUrl = static function (array $server): string {
     $_SERVER = $server;
@@ -101,6 +102,32 @@ try {
     ];
     $assertSame('show_url uses fallback when index.php in URI', show_url('Podcasts/Show'), '/index.php?show=Podcasts%2FShow');
     $assertSame('show_url with back params', show_url('Podcasts/Show', ['q' => 'test']), '/index.php?show=Podcasts%2FShow&return_to=%2Findex.php%3Fq%3Dtest');
+    $shareUrl = show_share_url('Podcasts/Show');
+    $shareQuery = (string)parse_url($shareUrl, PHP_URL_QUERY);
+    parse_str($shareQuery, $shareParams);
+    $assertSame('show_share_url base path uses show route', str_starts_with($shareUrl, '/index.php?show=Podcasts%2FShow&'), true);
+    $assertSame('show_share_url sets share_exp', isset($shareParams['share_exp']), true);
+    $assertSame('show_share_url sets share_sig', isset($shareParams['share_sig']), true);
+
+    $_GET = [
+        'share_exp' => (string)($shareParams['share_exp'] ?? ''),
+        'share_sig' => (string)($shareParams['share_sig'] ?? ''),
+    ];
+    $assertSame('is_valid_show_share_access accepts matching signed params', is_valid_show_share_access('Podcasts/Show'), true);
+
+    $_GET = [
+        'share_exp' => (string)($shareParams['share_exp'] ?? ''),
+        'share_sig' => (string)($shareParams['share_sig'] ?? '') . 'x',
+    ];
+    $assertSame('is_valid_show_share_access rejects tampered signature', is_valid_show_share_access('Podcasts/Show'), false);
+
+    $_GET = [
+        'share_exp' => (string)(time() - 5),
+        'share_sig' => show_share_signature('Podcasts/Show', time() - 5),
+    ];
+    $assertSame('is_valid_show_share_access rejects expired signature', is_valid_show_share_access('Podcasts/Show'), false);
+
+    $_GET = [];
     $assertSame('feed_url uses fallback when index.php in URI', feed_url('Podcasts/Show'), 'http://pod.local/index.php?feed=Podcasts%2FShow');
 
     // Absence of 'index.php' from the URI alone is NOT proof that rewriting
@@ -293,6 +320,7 @@ try {
 } finally {
     $_SERVER = $originalServer;
     $_COOKIE = $originalCookie;
+    $_GET = $originalGet;
 }
 
 if (!empty($failures)) {

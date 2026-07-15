@@ -59,6 +59,8 @@ cp config/config.json.sample config/config.json
 
 `MAIN_PAGE_PASSWORD` protects show/detail pages (`show/...`) with a full-page fablr login screen. The main index remains visible so users can browse available feeds, while show-page UI actions (Subscribe, play/download, edit description) require authentication. RSS feed URLs (`feed/...` / `?feed=...`) remain accessible and shareable.
 
+When password protection is enabled, each show page also exposes a **Copy Share Link** action. That link contains a signed, time-limited token tied to the specific show, so recipients (and social preview crawlers) can view that one show page and its Open Graph/Twitter metadata (cover art, title, summary) without a login prompt.
+
 4. Organise your audio files into subfolders:
 
 ```
@@ -194,7 +196,7 @@ RSS responses include `X-Robots-Tag: noindex, nofollow` to suppress search-engin
 All dynamic values written into HTML or XML are passed through `htmlspecialchars` with `ENT_QUOTES | ENT_SUBSTITUTE`.
 
 **Access control**
-Optional built-in auth can protect show/detail pages by setting `MAIN_PAGE_PASSWORD` in your local `config/config.json`. It uses a styled first-party login page (not browser basic-auth prompts) so users can browse the feed catalog on the index page, but must authenticate before using show-page UI actions while direct RSS endpoints still work.
+Optional built-in auth can protect show/detail pages by setting `MAIN_PAGE_PASSWORD` in your local `config/config.json`. It uses a styled first-party login page (not browser basic-auth prompts) so users can browse the feed catalog on the index page, but must authenticate before using show-page UI actions while direct RSS endpoints still work. Signed, time-limited share links from the show page can still grant access to that specific show for sharing and rich link previews.
 
 For anything beyond a private LAN, still prefer network or reverse-proxy controls (VPN, IP allowlist, reverse-proxy auth) as the primary layer.
 
