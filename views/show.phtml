@@ -751,15 +751,8 @@ function startBookDownload(ev, el) {
   }
 
   function startDownload() {
-    var frame = document.getElementById('book-download-frame');
-    if (!frame) {
-      frame = document.createElement('iframe');
-      frame.id = 'book-download-frame';
-      frame.style.display = 'none';
-      document.body.appendChild(frame);
-    }
     var sep = downloadUrl.indexOf('?') === -1 ? '?' : '&';
-    frame.src = downloadUrl + sep + 'dl_nonce=' + Date.now();
+    window.location.assign(downloadUrl + sep + 'dl_nonce=' + Date.now());
   }
 
   fetch(statusUrl, { cache: 'no-store' })
