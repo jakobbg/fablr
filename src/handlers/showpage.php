@@ -81,8 +81,10 @@ function render_show_page(string $feed): void {
     $refreshUrl = app_base_path() . '?' . http_build_query(['action' => 'meta', 'feed' => $feed, 'refresh' => 1]);
 
     $bookArchiveUrl = null;
+    $bookArchiveStatusUrl = null;
     if ($feedType === 'book' && BOOK_ARCHIVE_ENABLED) {
         $bookArchiveUrl = app_base_path() . '?' . http_build_query(['action' => 'book_archive', 'feed' => $feed]);
+        $bookArchiveStatusUrl = app_base_path() . '?' . http_build_query(['action' => 'book_archive_status', 'feed' => $feed]);
     }
 
     header('Content-Type: text/html; charset=UTF-8');

@@ -297,6 +297,20 @@ function can_defer_book_archive_build(): bool {
     return function_exists('fastcgi_finish_request') || function_exists('litespeed_finish_request');
 }
 
+function resolve_book_archive_return_url(string $feed): string {
+    $fallback = show_url($feed);
+    $raw = trim((string)($_GET['return_to'] ?? ''));
+    if ($raw === '') {
+        return $fallback;
+    }
+
+    if ($raw[0] !== '/' || str_contains($raw, '//') || str_contains($raw, "\n") || str_contains($raw, "\r")) {
+        return $fallback;
+    }
+
+    return $raw;
+}
+
 function finish_book_archive_response(): void {
     if (function_exists('fastcgi_finish_request')) {
         fastcgi_finish_request();
@@ -307,8 +321,8 @@ function finish_book_archive_response(): void {
     }
 }
 
-function send_book_archive_preparing_page(string $feed): void {
-    $retryUrl = app_base_path() . '?' . http_build_query([
+function send_book_archive_preparing_page(string $feed, string $returnUrl): void {
+    $downloadUrl = app_base_path() . '?' . http_build_query([
         'action' => 'book_archive',
         'feed' => $feed,
     ]);
@@ -326,7 +340,6 @@ function send_book_archive_preparing_page(string $feed): void {
     echo '<!doctype html><html lang="en"><head>'
         . '<meta charset="utf-8">'
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<meta http-equiv="refresh" content="12;url=' . h($retryUrl) . '">'
         . '<title>Preparing archive</title>'
         . '<style>'
         . 'body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;padding:24px;background:#0b1220;color:#e2e8f0}'
@@ -337,17 +350,30 @@ function send_book_archive_preparing_page(string $feed): void {
         . '<h1>Preparing archive...</h1>'
         . '<p>This can take a while for large books. This page checks build status and starts your download as soon as it is ready.</p>'
         . '<p id="status-text">Checking status...</p>'
-        . '<p>If nothing happens, <a href="' . h($retryUrl) . '">click here to retry now</a>.</p>'
+        . '<p>If nothing happens, <a href="' . h($downloadUrl) . '">click here to retry now</a>.</p>'
+        . '<p><a href="' . h($returnUrl) . '">Return to show page</a></p>'
         . '</main>'
         . '<script>'
         . '(function(){'
         . 'var statusEl=document.getElementById("status-text");'
         . 'var statusUrl=' . json_encode($statusUrl, JSON_UNESCAPED_SLASHES) . ';'
-        . 'var downloadUrl=' . json_encode($retryUrl, JSON_UNESCAPED_SLASHES) . ';'
+        . 'var downloadUrl=' . json_encode($downloadUrl, JSON_UNESCAPED_SLASHES) . ';'
+        . 'var returnUrl=' . json_encode($returnUrl, JSON_UNESCAPED_SLASHES) . ';'
+        . 'var started=false;'
         . 'function setText(t){if(statusEl){statusEl.textContent=t;}}'
+        . 'function startDownloadAndReturn(){'
+        . 'if(started){return;}'
+        . 'started=true;'
+        . 'setText("Archive ready. Starting download...");'
+        . 'var frame=document.getElementById("book-download-frame");'
+        . 'if(!frame){frame=document.createElement("iframe");frame.id="book-download-frame";frame.style.display="none";document.body.appendChild(frame);}'
+        . 'var sep=downloadUrl.indexOf("?")===-1?"?":"&";'
+        . 'frame.src=downloadUrl+sep+"dl_nonce="+Date.now();'
+        . 'setTimeout(function(){window.location.href=returnUrl;},1400);'
+        . '}'
         . 'function check(){'
         . 'fetch(statusUrl,{cache:"no-store"}).then(function(r){return r.ok?r.json():Promise.reject();}).then(function(d){'
-        . 'if(d&&d.ready){window.location.href=downloadUrl;return;}'
+        . 'if(d&&d.ready){startDownloadAndReturn();return;}'
         . 'if(d&&d.building){'
         . 'if(d.progress&&typeof d.progress.percent==="number"){'
         . 'setText("Preparing archive: "+d.progress.percent+"% ("+d.progress.files_done+"/"+d.progress.files_total+" files)");'
@@ -548,6 +574,8 @@ function send_book_archive(string $feed): void {
         return;
     }
 
+    $returnUrl = resolve_book_archive_return_url($feed);
+
     $files = book_archive_files($feedDir);
     if ($files === []) {
         http_response_code(404);
@@ -590,7 +618,7 @@ function send_book_archive(string $feed): void {
         if (!$isFresh) {
             if (can_defer_book_archive_build()) {
                 ignore_user_abort(true);
-                send_book_archive_preparing_page($feed);
+                send_book_archive_preparing_page($feed, $returnUrl);
                 finish_book_archive_response();
                 write_book_archive($archivePath, $metaPath, $progressPath, $files, $fingerprint);
                 return;

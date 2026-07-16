@@ -532,8 +532,12 @@
       <div class="hero-actions">
         <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($rssUrl)) ?>')" aria-label="Copy RSS feed URL">Copy RSS</button>
         <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($showPageUrl)) ?>')" aria-label="Copy shareable show URL">Copy Share Link</button>
-        <?php if ($feedType === 'book' && $bookArchiveUrl !== null): ?>
-        <a href="<?= h($bookArchiveUrl) ?>" class="btn" aria-label="Download full audiobook archive for <?= h($displayTitle) ?>">Download Book</a>
+        <?php if ($feedType === 'book' && $bookArchiveUrl !== null && $bookArchiveStatusUrl !== null): ?>
+        <a href="<?= h($bookArchiveUrl) ?>" class="btn" id="download-book-btn"
+          data-download-url="<?= h($bookArchiveUrl) ?>"
+          data-status-url="<?= h($bookArchiveStatusUrl) ?>"
+          aria-label="Download full audiobook archive for <?= h($displayTitle) ?>"
+          onclick="return startBookDownload(event,this)">Download Book</a>
         <?php endif; ?>
         <a href="<?= h($podcastUrl) ?>" class="btn primary" aria-label="Subscribe to <?= h($displayTitle) ?>">Subscribe</a>
       </div>
@@ -720,6 +724,67 @@ function saveNotes() {
       else { err.textContent = d.error || 'Save failed.'; err.style.display = 'block'; }
     })
     .catch(function () { err.textContent = 'Network error — check server logs.'; err.style.display = 'block'; });
+}
+<?php endif; ?>
+
+<?php if ($feedType === 'book' && $bookArchiveUrl !== null && $bookArchiveStatusUrl !== null): ?>
+function startBookDownload(ev, el) {
+  if (ev) ev.preventDefault();
+  if (!el) return false;
+
+  var downloadUrl = el.getAttribute('data-download-url') || '';
+  var statusUrl = el.getAttribute('data-status-url') || '';
+  if (!downloadUrl || !statusUrl) return false;
+
+  var original = el.dataset.origText || el.textContent;
+  el.dataset.origText = original;
+  el.textContent = 'Checking...';
+  el.style.pointerEvents = 'none';
+  el.setAttribute('aria-disabled', 'true');
+
+  function resetLabel(delayMs) {
+    setTimeout(function () {
+      el.textContent = original;
+      el.style.pointerEvents = '';
+      el.removeAttribute('aria-disabled');
+    }, delayMs);
+  }
+
+  function startDownload() {
+    var frame = document.getElementById('book-download-frame');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.id = 'book-download-frame';
+      frame.style.display = 'none';
+      document.body.appendChild(frame);
+    }
+    var sep = downloadUrl.indexOf('?') === -1 ? '?' : '&';
+    frame.src = downloadUrl + sep + 'dl_nonce=' + Date.now();
+  }
+
+  fetch(statusUrl, { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function (d) {
+      if (d && d.ready) {
+        el.textContent = 'Download started';
+        startDownload();
+        resetLabel(2800);
+        return;
+      }
+
+      el.textContent = 'Preparing archive...';
+      var sep = downloadUrl.indexOf('?') === -1 ? '?' : '&';
+      var returnTo = window.location.pathname + window.location.search;
+      window.location.href = downloadUrl + sep + 'return_to=' + encodeURIComponent(returnTo);
+    })
+    .catch(function () {
+      el.textContent = 'Preparing archive...';
+      var sep = downloadUrl.indexOf('?') === -1 ? '?' : '&';
+      var returnTo = window.location.pathname + window.location.search;
+      window.location.href = downloadUrl + sep + 'return_to=' + encodeURIComponent(returnTo);
+    });
+
+  return false;
 }
 <?php endif; ?>
 </script>
