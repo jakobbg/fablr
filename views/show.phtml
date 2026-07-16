@@ -532,6 +532,9 @@
       <div class="hero-actions">
         <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($rssUrl)) ?>')" aria-label="Copy RSS feed URL">Copy RSS</button>
         <button type="button" class="btn" onclick="copyFeed(this,'<?= h(addslashes($showPageUrl)) ?>')" aria-label="Copy shareable show URL">Copy Share Link</button>
+        <?php if ($feedType === 'book' && $bookArchiveUrl !== null): ?>
+        <a href="<?= h($bookArchiveUrl) ?>" class="btn" aria-label="Download full audiobook archive for <?= h($displayTitle) ?>">Download Book</a>
+        <?php endif; ?>
         <a href="<?= h($podcastUrl) ?>" class="btn primary" aria-label="Subscribe to <?= h($displayTitle) ?>">Subscribe</a>
       </div>
     </div>

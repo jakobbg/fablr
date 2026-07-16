@@ -14,6 +14,7 @@ const APP_QUIP    = 'Fables on demand — Your audio, your schedule';
 // load (the index/show pages trigger a background "refresh=1" request each
 // time they're opened).
 const CACHE_MIN_REFRESH_INTERVAL = 1800; // 30 minutes
+const BOOK_ARCHIVE_TTL_DEFAULT_SECONDS = 2678400; // 31 days
 
 // ── Load user settings from config/config.json ───────────────────────────────
 (static function (): void {
@@ -65,5 +66,18 @@ const CACHE_MIN_REFRESH_INTERVAL = 1800; // 30 minutes
     define('TRUSTED_PROXY_CIDRS', (array) $cfg['TRUSTED_PROXY_CIDRS']);
     define('FETCH_BOOK_METADATA', (bool)  $cfg['FETCH_BOOK_METADATA']);
     define('MAIN_PAGE_PASSWORD',  (string)$cfg['MAIN_PAGE_PASSWORD']);
+
+    $bookArchiveEnabled = array_key_exists('BOOK_ARCHIVE_ENABLED', $cfg)
+        ? (bool)$cfg['BOOK_ARCHIVE_ENABLED']
+        : true;
+    define('BOOK_ARCHIVE_ENABLED', $bookArchiveEnabled);
+
+    $bookArchiveTtl = array_key_exists('BOOK_ARCHIVE_TTL_SECONDS', $cfg)
+        ? (int)$cfg['BOOK_ARCHIVE_TTL_SECONDS']
+        : BOOK_ARCHIVE_TTL_DEFAULT_SECONDS;
+    if ($bookArchiveTtl <= 0) {
+        $bookArchiveTtl = BOOK_ARCHIVE_TTL_DEFAULT_SECONDS;
+    }
+    define('BOOK_ARCHIVE_TTL_SECONDS', $bookArchiveTtl);
 })();
 

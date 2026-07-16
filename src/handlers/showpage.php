@@ -80,6 +80,11 @@ function render_show_page(string $feed): void {
     // Background refresh URL for stats, covers, and book metadata.
     $refreshUrl = app_base_path() . '?' . http_build_query(['action' => 'meta', 'feed' => $feed, 'refresh' => 1]);
 
+    $bookArchiveUrl = null;
+    if ($feedType === 'book' && BOOK_ARCHIVE_ENABLED) {
+        $bookArchiveUrl = app_base_path() . '?' . http_build_query(['action' => 'book_archive', 'feed' => $feed]);
+    }
+
     header('Content-Type: text/html; charset=UTF-8');
     // Allow conditional 304s; pages are dynamic so revalidation is required.
     header('Cache-Control: no-cache');

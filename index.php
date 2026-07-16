@@ -55,6 +55,16 @@ if ($action === 'save_notes') {
     exit;
 }
 
+if ($action === 'book_archive') {
+    send_book_archive($feed);
+    exit;
+}
+
+if ($action === 'book_archive_status') {
+    send_book_archive_status($feed);
+    exit;
+}
+
 if ($feed !== '') {
     $feedDir = resolve_feed_dir($feed);
     if ($feedDir === null) {
