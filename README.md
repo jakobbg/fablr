@@ -137,6 +137,18 @@ sh tests/run_smoke.sh
 
 They validate high-risk logic such as episode title normalization, feed path safety checks, media stream/range/ETag behavior, reverse-proxy URL generation, audiobook metadata parsing, RSS description metadata propagation, and required project structure.
 
+## Release workflow
+
+Use the Makefile release flow so release notes are always read from a real multiline markdown file (never a shell-escaped string):
+
+```bash
+make release-notes
+# edit .release-notes.md
+make release VERSION=1.8.4
+```
+
+This prevents GitHub releases from showing literal `\n` in the body. The release command pushes `main`, creates/pushes `vX.Y.Z`, and publishes the GitHub release with `gh release create --notes-file`.
+
 ## Audiobook metadata
 
 When `FETCH_BOOK_METADATA` is set to `true` in your local `config/config.json`, audiobook RSS feeds are enriched with a book description fetched from the [Open Library](https://openlibrary.org) API. The description appears as the feed summary in your podcast app.
