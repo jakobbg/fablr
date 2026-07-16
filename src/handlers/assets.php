@@ -17,7 +17,7 @@ function send_image_asset(string $baseDir, string $name): void {
     }
 
     send_security_headers('asset');
-    $etag = '"' . hash_file('xxh32', $imgPath) . '"';
+    $etag = '"' . sha1_file($imgPath) . '"';
     $inm  = (string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? '');
     header('Content-Type: image/png');
     header('Cache-Control: public, max-age=31536000, immutable');

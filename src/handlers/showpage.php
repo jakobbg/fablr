@@ -45,11 +45,11 @@ function render_show_page(string $feed): void {
     $notes     = null;
     $notesRaw  = null;
     // Check in priority order: manual notes.md in feed dir → cache/notes by
-    // feedDir hash (current) → cache/notes by feed string hash (legacy).
+    // feed string hash (current) → cache/notes by feedDir hash (legacy).
     $notesCandidates = [
         $feedDir . DIRECTORY_SEPARATOR . 'notes.md',
-        __DIR__ . '/../../cache/notes/' . sha1($feedDir) . '.md',
         __DIR__ . '/../../cache/notes/' . sha1($feed)    . '.md',
+        __DIR__ . '/../../cache/notes/' . sha1($feedDir) . '.md',
     ];
     foreach ($notesCandidates as $notesPath) {
         if (is_file($notesPath) && is_readable($notesPath)) {
