@@ -9,9 +9,6 @@ cache/.rewrite_confirmed
 # Local machine-specific settings copied from config/config.json.sample.
 config/config.json
 
-# Per-feed notes written locally on the NAS — never tracked.
-**/notes.md
-
 # Local IDE metadata.
 .idea/
 .junie
