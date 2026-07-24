@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // ── Internal app metadata (not user-configurable) ────────────────────────────
-const MAX_ITEMS   = 200;
+const MAX_ITEMS   = 2000;
 const APP_NAME    = 'fablr';
 const APP_VERSION = 'v1.8.6';
 const REPO_URL    = 'https://github.com/jakobbg/fablr';
