@@ -168,6 +168,10 @@ try {
         ];
         $assertSame('show_url uses clean path once rewriting is confirmed', show_url('Podcasts/Show'), 'http://pod.local/show/Podcasts/Show');
         $assertSame('feed_url uses clean path once rewriting is confirmed', feed_url('Podcasts/Show'), 'http://pod.local/feed/Podcasts/Show');
+        $assertSame('media_url uses /media/{name} path with extension once rewriting is confirmed',
+            media_url('Podcasts/My Show', 'disc1/episode 01.mp3'),
+            'http://pod.local/media/episode%2001.mp3?feed=Podcasts%2FMy+Show&file=disc1%2Fepisode+01.mp3'
+        );
     } finally {
         @unlink($flagPath);
         if ($hadFlag) {

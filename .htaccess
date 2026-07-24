@@ -16,3 +16,9 @@ RewriteRule ^feed/(.+)$ index.php?feed=$1 [L,QSA,B]
 # Route clean show detail paths.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^show/(.+)$ index.php?show=$1 [L,QSA,B]
+
+# Route clean media paths — gives enclosure URLs a real file extension so that
+# podcast apps (Apple Podcasts, etc.) and validators accept them.
+# The feed and file are passed as query-string params; action=media is injected here.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^media/.+$ index.php?action=media [L,QSA]

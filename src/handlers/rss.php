@@ -69,7 +69,7 @@ function send_rss(string $feed, string $feedDir, string $type = 'podcast'): void
     $cdata = static fn(string $s): string => '<![CDATA[' . str_replace(']]>', ']]]]><![CDATA[>', $s) . ']]>';
 
     echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    echo "<rss version=\"2.0\" xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n";
+    echo "<rss version=\"2.0\" xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:podcast=\"https://podcastindex.org/namespace/1.0\">\n";
     echo "  <channel>\n";
     echo "    <title>" . h($name) . "</title>\n";
     echo "    <link>" . h($base) . "</link>\n";
@@ -78,6 +78,8 @@ function send_rss(string $feed, string $feedDir, string $type = 'podcast'): void
     echo "    <lastBuildDate>" . gmdate(DATE_RSS, $lastBuild) . "</lastBuildDate>\n";
     echo "    <generator>" . h(APP_NAME) . " " . h(APP_VERSION) . "</generator>\n";
     echo "    <atom:link href=\"" . h($self) . "\" rel=\"self\" type=\"application/rss+xml\" />\n";
+    // PSP-1: signal that this feed should not be copied without permission
+    echo "    <podcast:locked>no</podcast:locked>\n";
     // Required by Apple Podcasts
     echo "    <itunes:author>" . h($name) . "</itunes:author>\n";
     echo "    <itunes:explicit>false</itunes:explicit>\n";

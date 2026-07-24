@@ -146,7 +146,7 @@ function use_clean_urls(): bool {
     if (!str_contains($path, 'index.php')) {
         $base = app_base_path();
         $relative = str_starts_with($path, $base) ? substr($path, strlen($base)) : ltrim($path, '/');
-        if (str_starts_with($relative, 'show/') || str_starts_with($relative, 'feed/')) {
+        if (str_starts_with($relative, 'show/') || str_starts_with($relative, 'feed/') || str_starts_with($relative, 'media/')) {
             // Direct proof: this request only could have reached us through
             // an active rewrite rule.
             $flag = rewrite_confirmed_flag_path();
@@ -317,6 +317,17 @@ function human_age(?int $ts): ?string {
 }
 
 function media_url(string $feed, string $relPath): string {
+    if (use_clean_urls()) {
+        // Use a path-based URL so the enclosure URL visibly ends with the
+        // file extension (e.g. /media/Chapter-01.mp3).  Apple Podcasts and
+        // podcast validators require this; byte-range validators also skip
+        // URLs that look like plain PHP query strings.
+        $name = rawurlencode(basename($relPath));
+        return base_url() . 'media/' . $name . '?' . http_build_query([
+            'feed' => $feed,
+            'file' => $relPath,
+        ]);
+    }
     return base_url() . '?' . http_build_query([
         'action' => 'media',
         'feed' => $feed,
